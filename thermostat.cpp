@@ -28,6 +28,7 @@ void ThermostatClass::start()
 void ThermostatClass::stop()
 {
 	_refreshTimer.stop();
+	_state = false;
 }
 
 void ThermostatClass::onStateChange(onStateChangeDelegate delegateFunction)
