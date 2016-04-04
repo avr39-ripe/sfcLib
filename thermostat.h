@@ -35,7 +35,7 @@ public:
 	void setTargetTempDelta(float targetTempDelta) { _targetTempDelta = (uint16_t)targetTempDelta / 100; };
 	uint8_t getState() { return _state; };
 	void onStateChange(onStateChangeDelegate delegateFunction);
-//	void onStateCfg(HttpRequest &request, HttpResponse &response);
+	void onHttpConfig(HttpRequest &request, HttpResponse &response);
 private:
 	void _check();
 	String _name; // some text description of thermostat

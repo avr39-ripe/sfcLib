@@ -81,3 +81,60 @@ void ThermostatClass::_check()
 		_onChangeState(_state);
 	}
 }
+
+void ThermostatClass::onHttpConfig(HttpRequest &request, HttpResponse &response)
+{
+	if (request.getRequestMethod() == RequestMethod::POST)
+		{
+			if (request.getBody() == NULL)
+			{
+				debugf("NULL bodyBuf");
+				return;
+			}
+			else
+			{
+				StaticJsonBuffer<stateJsonBufSize> jsonBuffer;
+				JsonObject& root = jsonBuffer.parseObject(request.getBody());
+				root.prettyPrintTo(Serial); //Uncomment it for debuging
+
+				if (root["active"].success()) // Settings
+				{
+					_active = root["active"];
+					saveStateCfg();
+					return;
+				}
+				if (root["manual"].success()) // Settings
+				{
+					_manual = root["manual"];
+	//				saveStateCfg();
+					return;
+				}
+				if (root["manualTargetTemp"].success()) // Settings
+				{
+					_manualTargetTemp = ((float)(root["manualTargetTemp"]) * 100);
+					saveStateCfg();
+					return;
+				}
+				if (root["targetTempDelta"].success()) // Settings
+				{
+					_targetTempDelta = ((float)(root["targetTempDelta"]) * 100);
+					saveStateCfg();
+					return;
+				}
+			}
+		}
+		else
+		{
+			JsonObjectStream* stream = new JsonObjectStream();
+			JsonObject& json = stream->getRoot();
+
+//			json["name"] = _name;
+//			json["active"] = _active;
+//			json["state"] = _state;
+			json["targetTemp"] = _targetTemp;
+			json["targetTempDelta"] = _targetTempDelta;
+
+			response.setHeader("Access-Control-Allow-Origin", "*");
+			response.sendJsonObject(stream);
+		}
+}
