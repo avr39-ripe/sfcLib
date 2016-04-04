@@ -63,7 +63,7 @@ void FanClass::_pereodicEnd()
 	Serial.printf("Periodic end - startTemp: ");Serial.print(_periodicStartTemp);Serial.printf(" endTemp ");Serial.println(_periodicEndTemp);
 	if (_periodicEndTemp - _periodicStartTemp > (float)(_periodicTempDelta / 100))
 	{
-		_periodicCounter = maxLowTempCount;
+		_periodicCounter = _maxLowTempCount;
 	} else if (_periodicCounter > 0)
 	{
 		Serial.printf("Seems like no wood left, giving another chance!\n");
@@ -107,4 +107,104 @@ void FanClass::_modeStopEnd()
 	_thermostat->stop();
 	_fanTimer.stop();
 	_mode = FanMode::IDLE;
+}
+
+void FanClass::onHttpConfig(HttpRequest &request, HttpResponse &response)
+{
+	if (request.getRequestMethod() == RequestMethod::POST)
+		{
+			if (request.getBody() == NULL)
+			{
+				debugf("NULL bodyBuf");
+				return;
+			}
+			else
+			{
+				uint8_t needSave = false;
+				DynamicJsonBuffer jsonBuffer;
+				JsonObject& root = jsonBuffer.parseObject(request.getBody());
+				root.prettyPrintTo(Serial); //Uncomment it for debuging
+
+				if (root["startDuration"].success())
+				{
+					_startDuration = root["startDuration"];
+					needSave = true;
+				}
+				if (root["stopDuration"].success())
+				{
+					_stopDuration = root["stopDuration"];
+					needSave = true;
+				}
+				if (root["periodicInterval"].success())
+				{
+					_periodicInterval = root["periodicInterval"];
+					needSave = true;
+				}
+				if (root["periodicDuration"].success())
+				{
+					_periodicDuration = root["periodicDuration"];
+					needSave = true;
+				}
+				if (root["periodicTempDelta"].success())
+				{
+					_periodicTempDelta = root["periodicTempDelta"];
+					needSave = true;
+				}
+				if (root["maxLowTempCount"].success())
+				{
+					_maxLowTempCount = root["maxLowTempCount"];
+					needSave = true;
+				}
+				if (needSave)
+				{
+					_saveBinConfig();
+				}
+			}
+		}
+		else
+		{
+			JsonObjectStream* stream = new JsonObjectStream();
+			JsonObject& json = stream->getRoot();
+
+			json["startDuration"] = _startDuration;
+			json["stopDuration"] = _stopDuration;
+			json["periodicInterval"] = _periodicInterval;
+			json["periodicDuration"] = _periodicDuration;
+			json["periodicTempDelta"] = _periodicTempDelta;
+			json["maxLowTempCount"] = _maxLowTempCount;
+
+			response.setHeader("Access-Control-Allow-Origin", "*");
+			response.sendJsonObject(stream);
+		}
+}
+
+void FanClass::_saveBinConfig()
+{
+	Serial.printf("Try to save bin cfg..\n");
+	file_t file = fileOpen("fan.config", eFO_CreateIfNotExist | eFO_WriteOnly);
+	fileWrite(file, &_startDuration, sizeof(_startDuration));
+	fileWrite(file, &_stopDuration, sizeof(_stopDuration));
+	fileWrite(file, &_periodicInterval, sizeof(_periodicInterval));
+	fileWrite(file, &_periodicDuration, sizeof(_periodicDuration));
+	fileWrite(file, &_periodicTempDelta, sizeof(_periodicTempDelta));
+	fileWrite(file, &_maxLowTempCount, sizeof(_maxLowTempCount));
+	fileClose(file);
+}
+
+void FanClass::_loadBinConfig()
+{
+	Serial.printf("Try to load bin cfg..\n");
+	if (fileExist("fan.config"))
+	{
+		Serial.printf("Will load bin cfg..\n");
+		file_t file = fileOpen("fan.config", eFO_ReadOnly);
+		fileSeek(file, 0, eSO_FileStart);
+		fileRead(file, &_startDuration, sizeof(_startDuration));
+		fileRead(file, &_stopDuration, sizeof(_stopDuration));
+		fileRead(file, &_periodicInterval, sizeof(_periodicInterval));
+		fileRead(file, &_periodicDuration, sizeof(_periodicDuration));
+		fileRead(file, &_periodicTempDelta, sizeof(_periodicTempDelta));
+		fileRead(file, &_maxLowTempCount, sizeof(_maxLowTempCount));
+		fileClose(file);
+	}
 }

@@ -22,7 +22,7 @@ namespace FanMode
 	const uint8_t STOP=4;
 }
 
-const uint8_t maxLowTempCount = 3;
+//const uint8_t _maxLowTempCount = 3;
 
 class FanClass
 {
@@ -43,6 +43,9 @@ public:
 	void setPeriodicDuration(uint16_t periodicDuration) { _periodicDuration = periodicDuration; };
 	uint16_t getPeriodicTempDelta() const { return _periodicTempDelta; };
 	void setPeriodicTempDelta(uint16_t periodicTempDelta) { _periodicTempDelta = periodicTempDelta; };
+	void onHttpConfig(HttpRequest &request, HttpResponse &response);
+	void _saveBinConfig();
+	void _loadBinConfig();
 private:
 	void _modeStart(uint8_t state);
 	void _modeStartEnd();
@@ -57,13 +60,14 @@ private:
 	BinInClass* _stopButton;
 	BinOutClass* _fanRelay;
 	ThermostatClass* _thermostat;
-	uint8_t _mode = FanMode::STOP;
+	uint8_t _mode = FanMode::IDLE;
 	uint16_t _startDuration = 1; // turn Fan on for this duration when START button pressed, Minutes
 	uint16_t _stopDuration = 1; // turn Fan on for this duration when STOP button pressed, Minutes
 	uint16_t _periodicInterval = 9; // interval to turn on Fan in RUN mode, Minutes
 	uint16_t _periodicDuration = 2; // duration to turn on Fan in RUN mode, Minutes
 	float _periodicStartTemp = 0; // Temperature at periodic start, will be compared to temperature at periodic and
 	uint16_t _periodicTempDelta = 300; // minimum temperature difference after periodic fan turn on, if less go to IDLE mode
-	uint8_t _periodicCounter = maxLowTempCount; // if 0 o to IDLE mode;
+	uint8_t _maxLowTempCount = 3;
+	uint8_t _periodicCounter = _maxLowTempCount; // if 0 o to IDLE mode;
 };
 #endif /* LIB_FAN_FAN_H_ */
