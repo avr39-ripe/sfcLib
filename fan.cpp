@@ -63,7 +63,7 @@ void FanClass::_pereodicEnd()
 	Serial.printf("Periodic end - startTemp: ");Serial.print(_periodicStartTemp);Serial.printf(" endTemp ");Serial.println(_periodicEndTemp);
 	if (_periodicEndTemp - _periodicStartTemp > (float)(_periodicTempDelta / 100))
 	{
-		_periodicCounter = maxLowTemp;
+		_periodicCounter = maxLowTempCount;
 	} else if (_periodicCounter > 0)
 	{
 		Serial.printf("Seems like no wood left, giving another chance!\n");
