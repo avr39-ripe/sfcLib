@@ -60,6 +60,11 @@ void ThermostatClass::_check()
 	if (!_tempSensorValid)
 	{
 		_state = _invalidDefaultState; // If we lost tempsensor we set thermostat to Default Invalid State
+		if (_onChangeState)
+		{
+			Serial.printf("We lost tempsensor! - set invalidDefaultstate via delegate!\n");
+			_onChangeState(_state);
+		}
 		Serial.printf("Name: %s - TEMPSENSOR ERROR! - WE LOST IT!\n", _name.c_str());
 	}
 	else
