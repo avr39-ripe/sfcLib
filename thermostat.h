@@ -36,8 +36,12 @@ public:
 	uint8_t getState() { return _state; };
 	void onStateChange(onStateChangeDelegate delegateFunction);
 	void onHttpConfig(HttpRequest &request, HttpResponse &response);
+	void _saveBinConfig();
+	void _loadBinConfig();
 private:
 	void _check();
+//	void _saveBinConfig();
+//	void _loadBinConfig();
 	String _name; // some text description of thermostat
 	uint8_t _active; //thermostat active (true), ON,  works, updates, changes its _state or turned OFF
 	uint8_t _state; // thermostat state on (true) or off (false)

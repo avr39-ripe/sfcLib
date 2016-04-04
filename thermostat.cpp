@@ -18,6 +18,7 @@ ThermostatClass::ThermostatClass(TempSensors &tempSensors, uint8_t mode, uint8_t
 	_active = true;
 	_mode = mode;
 	_invalidDefaultState = invalidDefaultState;
+//	_loadBinConfig();
 }
 
 void ThermostatClass::start()
@@ -93,33 +94,26 @@ void ThermostatClass::onHttpConfig(HttpRequest &request, HttpResponse &response)
 			}
 			else
 			{
-				StaticJsonBuffer<stateJsonBufSize> jsonBuffer;
+				uint8_t needSave = false;
+				DynamicJsonBuffer jsonBuffer;
 				JsonObject& root = jsonBuffer.parseObject(request.getBody());
 				root.prettyPrintTo(Serial); //Uncomment it for debuging
 
-				if (root["active"].success()) // Settings
+				if (root["targetTemp"].success()) // Settings
 				{
-					_active = root["active"];
-					saveStateCfg();
-					return;
-				}
-				if (root["manual"].success()) // Settings
-				{
-					_manual = root["manual"];
-	//				saveStateCfg();
-					return;
-				}
-				if (root["manualTargetTemp"].success()) // Settings
-				{
-					_manualTargetTemp = ((float)(root["manualTargetTemp"]) * 100);
-					saveStateCfg();
-					return;
+//					_targetTemp = ((float)(root["targetTemp"]) * 100);
+					_targetTemp = root["targetTemp"];
+					needSave = true;
 				}
 				if (root["targetTempDelta"].success()) // Settings
 				{
-					_targetTempDelta = ((float)(root["targetTempDelta"]) * 100);
-					saveStateCfg();
-					return;
+//					_targetTempDelta = ((float)(root["targetTempDelta"]) * 100);
+					_targetTempDelta = root["targetTempDelta"];
+					needSave = true;
+				}
+				if (needSave)
+				{
+					_saveBinConfig();
 				}
 			}
 		}
@@ -137,4 +131,27 @@ void ThermostatClass::onHttpConfig(HttpRequest &request, HttpResponse &response)
 			response.setHeader("Access-Control-Allow-Origin", "*");
 			response.sendJsonObject(stream);
 		}
+}
+
+void ThermostatClass::_saveBinConfig()
+{
+	Serial.printf("Try to save bin cfg..\n");
+	file_t file = fileOpen("tstat" + _name, eFO_CreateIfNotExist | eFO_WriteOnly);
+	fileWrite(file, &_targetTemp, sizeof(_targetTemp));
+	fileWrite(file, &_targetTempDelta, sizeof(_targetTempDelta));
+	fileClose(file);
+}
+
+void ThermostatClass::_loadBinConfig()
+{
+	Serial.printf("Try to load bin cfg..\n");
+	if (fileExist("tstat" + _name))
+	{
+		Serial.printf("Will load bin cfg..\n");
+		file_t file = fileOpen("tstat" + _name, eFO_ReadOnly);
+		fileSeek(file, 0, eSO_FileStart);
+		fileRead(file, &_targetTemp, sizeof(_targetTemp));
+		fileRead(file, &_targetTempDelta, sizeof(_targetTempDelta));
+		fileClose(file);
+	}
 }
