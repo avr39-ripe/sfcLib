@@ -42,7 +42,7 @@ private:
 	uint8_t _active; //thermostat active (true), ON,  works, updates, changes its _state or turned OFF
 	uint8_t _state; // thermostat state on (true) or off (false)
 	uint8_t _mode; // thermostat mode HEATING = true or COOLING = false
-	uint16_t _targetTemp = 2300; //target temperature for manual mode MULTIPLE BY 100
+	uint16_t _targetTemp = 2500; //target temperature for manual mode MULTIPLE BY 100
 	uint16_t _targetTempDelta = 50; //delta +- for both _targetTemp and manualTargetTemp MULTIPLE BY 100
 	uint16_t _refresh; // thermostat update interval
 	Timer _refreshTimer; // timer for thermostat update
