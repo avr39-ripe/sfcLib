@@ -22,7 +22,7 @@ namespace FanMode
 	const uint8_t STOP=4;
 }
 
-const uint8_t maxLowTemp = 2;
+const uint8_t maxLowTempCount = 3;
 
 class FanClass
 {
@@ -60,10 +60,10 @@ private:
 	uint8_t _mode = FanMode::STOP;
 	uint16_t _startDuration = 1; // turn Fan on for this duration when START button pressed, Minutes
 	uint16_t _stopDuration = 1; // turn Fan on for this duration when STOP button pressed, Minutes
-	uint16_t _periodicInterval = 5; // interval to turn on Fan in RUN mode, Minutes
-	uint16_t _periodicDuration = 1; // duration to turn on Fan in RUN mode, Minutes
+	uint16_t _periodicInterval = 9; // interval to turn on Fan in RUN mode, Minutes
+	uint16_t _periodicDuration = 2; // duration to turn on Fan in RUN mode, Minutes
 	float _periodicStartTemp = 0; // Temperature at periodic start, will be compared to temperature at periodic and
-	uint16_t _periodicTempDelta = 500; // minimum temperature difference after periodic fan turn on, if less go to IDLE mode
-	uint8_t _periodicCounter = maxLowTemp; // if 0 o to IDLE mode;
+	uint16_t _periodicTempDelta = 300; // minimum temperature difference after periodic fan turn on, if less go to IDLE mode
+	uint8_t _periodicCounter = maxLowTempCount; // if 0 o to IDLE mode;
 };
 #endif /* LIB_FAN_FAN_H_ */
