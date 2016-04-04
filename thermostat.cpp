@@ -23,12 +23,17 @@ ThermostatClass::ThermostatClass(TempSensors &tempSensors, uint8_t mode, uint8_t
 void ThermostatClass::start()
 {
 	_refreshTimer.initializeMs(_refresh, TimerDelegate(&ThermostatClass::_check, this)).start(true);
+	if (_onChangeState)
+	{
+		Serial.printf("Start - set init state via delegate\n");
+		_onChangeState(_state);
+	}
 }
 
 void ThermostatClass::stop()
 {
 	_refreshTimer.stop();
-	_state = false;
+//	_state = false;
 }
 
 void ThermostatClass::onStateChange(onStateChangeDelegate delegateFunction)
