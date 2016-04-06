@@ -40,6 +40,7 @@ void FanClass::_modeStartEnd()
 	Serial.printf("START Finished\n");
 	_fanRelay->setState(false);
 	_thermostat->start();
+	_periodicCounter = _maxLowTempCount; // Reset pereodicCounter
 	//TODO: CHANGE THIS LATER FOR 60000!!!
 	_fanTimer.initializeMs(_periodicInterval * 6000, TimerDelegate(&FanClass::_pereodic, this)).start(false);
 	_mode = FanMode::RUN;
