@@ -31,7 +31,7 @@ void FanClass::_modeStart(uint8_t state)
 		Serial.printf("START Button pressed\n");
 		_fanRelay->setState(true);
 		//TODO: CHANGE THIS LATER FOR 60000!!!
-		_fanTimer.initializeMs(_startDuration * 6000, TimerDelegate(&FanClass::_modeStartEnd, this)).start(false);
+		_fanTimer.initializeMs(_startDuration * 60000, TimerDelegate(&FanClass::_modeStartEnd, this)).start(false);
 	}
 }
 
@@ -42,7 +42,7 @@ void FanClass::_modeStartEnd()
 	_thermostat->start();
 	_periodicCounter = _maxLowTempCount; // Reset pereodicCounter
 	//TODO: CHANGE THIS LATER FOR 60000!!!
-	_fanTimer.initializeMs(_periodicInterval * 6000, TimerDelegate(&FanClass::_pereodic, this)).start(false);
+	_fanTimer.initializeMs(_periodicInterval * 60000, TimerDelegate(&FanClass::_pereodic, this)).start(false);
 	_mode = FanMode::RUN;
 }
 
@@ -53,7 +53,7 @@ void FanClass::_pereodic()
 	_thermostat->stop();
 	_fanRelay->setState(true);
 	//TODO: CHANGE THIS LATER FOR 60000!!!
-	_fanTimer.initializeMs(_periodicDuration * 6000, TimerDelegate(&FanClass::_pereodicEnd, this)).start(false);
+	_fanTimer.initializeMs(_periodicDuration * 60000, TimerDelegate(&FanClass::_pereodicEnd, this)).start(false);
 	_mode = FanMode::PERIODIC;
 }
 
@@ -84,7 +84,7 @@ void FanClass::_pereodicEnd()
 		_fanRelay->setState(false);
 		_thermostat->start();
 		//TODO: CHANGE THIS LATER FOR 60000!!!
-		_fanTimer.initializeMs(_periodicInterval * 6000, TimerDelegate(&FanClass::_pereodic, this)).start(false);
+		_fanTimer.initializeMs(_periodicInterval * 60000, TimerDelegate(&FanClass::_pereodic, this)).start(false);
 		_mode = FanMode::RUN;
 	}
 }
@@ -97,7 +97,7 @@ void FanClass::_modeStop(uint8_t state)
 		Serial.printf("STOP Button pressed\n");
 		_fanRelay->setState(true);
 		//TODO: CHANGE THIS LATER FOR 60000!!!
-		_fanTimer.initializeMs(_startDuration * 6000, TimerDelegate(&FanClass::_modeStopEnd, this)).start(false);
+		_fanTimer.initializeMs(_startDuration * 60000, TimerDelegate(&FanClass::_modeStopEnd, this)).start(false);
 	}
 }
 
