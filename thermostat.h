@@ -26,24 +26,28 @@ const uint8_t maxInvalidGetTemp = 10; // max unhealthy getTemp before we assume 
 class ThermostatClass
 {
 public:
-	ThermostatClass(TempSensors &tempSensors, uint8_t mode = ThermostatMode::HEATING, uint8_t invalidDefaultState = true, String name = "Thermostat", uint16_t refresh = 4000);
+	ThermostatClass(TempSensors &tempSensors, uint8_t mode = ThermostatMode::HEATING, uint8_t invalidDefaultState = true, uint8_t disabledDefaulrState = false, String name = "Thermostat", uint16_t refresh = 4000);
 	void start();
-	void stop();
+	void stop(uint8_t setDefaultDisabledState = true);
+	void enable(uint8_t enabled);
 	float getTargetTemp() { return _targetTemp / 100; };
 	void setTargetTemp(float targetTemp) { _targetTemp = (uint16_t)targetTemp * 100; };
 	float getTargetTempDelta() { return _targetTempDelta / 100; };
 	void setTargetTempDelta(float targetTempDelta) { _targetTempDelta = (uint16_t)targetTempDelta / 100; };
 	uint8_t getState() { return _state; };
-	void onStateChange(onStateChangeDelegate delegateFunction);
+	void setState(uint8_t state);
+	void onStateChange(onStateChangeDelegate delegateFunction, uint8_t directState = true);
+//	void onStateChangeInverse(onStateChangeDelegate delegateFunction);
 	void onHttpConfig(HttpRequest &request, HttpResponse &response);
 	void _saveBinConfig();
 	void _loadBinConfig();
 private:
 	void _check();
+	void _callOnStateChangeDelegates();
 //	void _saveBinConfig();
 //	void _loadBinConfig();
 	String _name; // some text description of thermostat
-	uint8_t _active; //thermostat active (true), ON,  works, updates, changes its _state or turned OFF
+	uint8_t _enabled; //thermostat active (true), ON,  works, updates, changes its _state or turned OFF
 	uint8_t _state; // thermostat state on (true) or off (false)
 	uint8_t _mode; // thermostat mode HEATING = true or COOLING = false
 	uint16_t _targetTemp = 2500; //target temperature for manual mode MULTIPLE BY 100
@@ -52,8 +56,10 @@ private:
 	Timer _refreshTimer; // timer for thermostat update
 	TempSensors *_tempSensors;
 //	uint8_t	_sensorId;
-	onStateChangeDelegate _onChangeState = nullptr;
+	Vector<onStateChangeDelegate> _onChangeState; // call them with _state as argument
+	Vector<onStateChangeDelegate> _onChangeStateInverse; // call them with !_state as argument
 	uint8_t _invalidDefaultState = true;
+	uint8_t _disabledDefaultState = false;
 	uint8_t _tempSensorValid = maxInvalidGetTemp; // if more than zero we STILL trust tempSensor temperature if less zero NOT trust
 
 };

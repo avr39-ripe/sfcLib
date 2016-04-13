@@ -9,44 +9,95 @@
 
 //  ThermostatClass
 
-ThermostatClass::ThermostatClass(TempSensors &tempSensors, uint8_t mode, uint8_t invalidDefaultState, String name, uint16_t refresh)
+ThermostatClass::ThermostatClass(TempSensors &tempSensors, uint8_t mode, uint8_t invalidDefaultState, uint8_t disabledDefaulrState, String name, uint16_t refresh)
 {
 	_tempSensors = &tempSensors;
 	_name = name;
 	_refresh = refresh;
-	_state = false;
-	_active = true;
+	_state = disabledDefaulrState;
+	_enabled = false;
 	_mode = mode;
 	_invalidDefaultState = invalidDefaultState;
+	_disabledDefaultState = disabledDefaulrState;
 //	_loadBinConfig();
 }
 
 void ThermostatClass::start()
 {
 	_refreshTimer.initializeMs(_refresh, TimerDelegate(&ThermostatClass::_check, this)).start(true);
-	if (_onChangeState)
+
+	Serial.printf("Start - set init state via delegate\n");
+	_callOnStateChangeDelegates();
+
+}
+
+void ThermostatClass::stop(uint8_t setDefaultDisabledState)
+{
+	_refreshTimer.stop();
+	if (setDefaultDisabledState)
 	{
-		Serial.printf("Start - set init state via delegate\n");
-		_onChangeState(_state);
+//		_state = _disabledDefaultState;
+		setState(_disabledDefaultState);
+		Serial.printf("Stop - set default disabled state via delegate\n");
+//		_callOnStateChangeDelegates();
 	}
 }
 
-void ThermostatClass::stop()
+void ThermostatClass::enable(uint8_t enabled)
 {
-	_refreshTimer.stop();
-//	_state = false;
+	if (enabled)
+	{
+		start();
+	}
+	else
+	{
+		stop();
+	}
+}
+void ThermostatClass::onStateChange(onStateChangeDelegate delegateFunction, uint8_t directState)
+{
+	if (directState)
+	{
+		_onChangeState.add(delegateFunction);
+	}
+	else
+	{
+		_onChangeStateInverse.add(delegateFunction);
+	}
+
 }
 
-void ThermostatClass::onStateChange(onStateChangeDelegate delegateFunction)
+void ThermostatClass::_callOnStateChangeDelegates()
 {
-	_onChangeState = delegateFunction;
+	for (uint8_t i = 0; i < _onChangeState.count(); i++)
+	{
+		_onChangeState[i](_state);
+	}
+
+	for (uint8_t i = 0; i < _onChangeStateInverse.count(); i++)
+	{
+		_onChangeStateInverse[i](!_state);
+	}
+}
+//void ThermostatClass::onStateChangeInverse(onStateChangeDelegate delegateFunction)
+//{
+//	_onChangeStateInverse.add(delegateFunction);
+//}
+
+void ThermostatClass::setState(uint8_t state)
+{
+	uint8_t prevState = _state;
+	_state = state;
+	Serial.printf("Thermostat %s: %s\n", _name, _state ? "true" : "false");
+	if (_state != prevState)
+	{
+		_callOnStateChangeDelegates();
+	}
 }
 
 void ThermostatClass::_check()
 {
 	float currTemp = _tempSensors->getTemp();
-
-	uint8_t prevState = _state;
 
 	if (_tempSensors->isValid())
 	{
@@ -60,26 +111,26 @@ void ThermostatClass::_check()
 
 	if (!_tempSensorValid)
 	{
-		_state = _invalidDefaultState; // If we lost tempsensor we set thermostat to Default Invalid State
-		if (_onChangeState)
-		{
-			Serial.printf("We lost tempsensor! - set invalidDefaultstate via delegate!\n");
-			_onChangeState(_state);
-		}
+		Serial.printf("We lost tempsensor! - set invalidDefaultstate via delegate!\n");
+		setState(_invalidDefaultState);
+//		_state = _invalidDefaultState; // If we lost tempsensor we set thermostat to Default Invalid State
+//		if (_onChangeState)
+//		{
+//			Serial.printf("We lost tempsensor! - set invalidDefaultstate via delegate!\n");
+//			_onChangeState(_state);
+//		}
 		Serial.printf("Name: %s - TEMPSENSOR ERROR! - WE LOST IT!\n", _name.c_str());
 	}
 	else
 	{
 		if (currTemp >= (float)(_targetTemp / 100.0) + (float)(_targetTempDelta / 100.0))
-			_state = !(_mode);
+		{
+			setState(!(_mode));
+		}
 		if (currTemp <= (float)(_targetTemp / 100.0) - (float)(_targetTempDelta / 100.0))
-			_state = _mode;
-	}
-	Serial.printf(" State: %s\n", _state ? "true" : "false");
-	if (prevState != _state && _onChangeState)
-	{
-		Serial.printf("onChangeState Delegate/CB called!\n");
-		_onChangeState(_state);
+		{
+			setState((_mode));
+		}
 	}
 }
 
