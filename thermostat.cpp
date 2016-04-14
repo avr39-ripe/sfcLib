@@ -88,7 +88,7 @@ void ThermostatClass::setState(uint8_t state)
 {
 	uint8_t prevState = _state;
 	_state = state;
-	Serial.printf("Thermostat %s: %s\n", _name, _state ? "true" : "false");
+	Serial.printf("Thermostat %s: %s\n", _name.c_str(), _state ? "true" : "false");
 	if (_state != prevState)
 	{
 		_callOnStateChangeDelegates();
