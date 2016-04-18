@@ -14,7 +14,7 @@ ThermostatClass::ThermostatClass(TempSensors &tempSensors, uint8_t mode, uint8_t
 	_tempSensors = &tempSensors;
 	_name = name;
 	_refresh = refresh;
-	_state = disabledDefaulrState;
+	setState(disabledDefaulrState,true);
 	_enabled = false;
 	_mode = mode;
 	_invalidDefaultState = invalidDefaultState;
@@ -28,7 +28,7 @@ void ThermostatClass::start()
 
 	Serial.printf("Start - set init state via delegate\n");
 //	_callOnStateChangeDelegates();
-	setState(_state, true);
+//	setState(_state, true);
 
 }
 
@@ -56,46 +56,46 @@ void ThermostatClass::enable(uint8_t enabled)
 	}
 }
 
-void ThermostatClass::onStateChange(onStateChangeDelegate delegateFunction, uint8_t directState)
-{
-	if (directState)
-	{
-		_onChangeState.add(delegateFunction);
-	}
-	else
-	{
-		_onChangeStateInverse.add(delegateFunction);
-	}
-
-}
-
-void ThermostatClass::_callOnStateChangeDelegates()
-{
-	for (uint8_t i = 0; i < _onChangeState.count(); i++)
-	{
-		_onChangeState[i](_state);
-	}
-
-	for (uint8_t i = 0; i < _onChangeStateInverse.count(); i++)
-	{
-		_onChangeStateInverse[i](!_state);
-	}
-}
+//void ThermostatClass::onStateChange(onStateChangeDelegate delegateFunction, uint8_t directState)
+//{
+//	if (directState)
+//	{
+//		_onChangeState.add(delegateFunction);
+//	}
+//	else
+//	{
+//		_onChangeStateInverse.add(delegateFunction);
+//	}
+//
+//}
+//
+//void ThermostatClass::_callOnStateChangeDelegates()
+//{
+//	for (uint8_t i = 0; i < _onChangeState.count(); i++)
+//	{
+//		_onChangeState[i](_state);
+//	}
+//
+//	for (uint8_t i = 0; i < _onChangeStateInverse.count(); i++)
+//	{
+//		_onChangeStateInverse[i](!_state);
+//	}
+//}
 //void ThermostatClass::onStateChangeInverse(onStateChangeDelegate delegateFunction)
 //{
 //	_onChangeStateInverse.add(delegateFunction);
 //}
 
-void ThermostatClass::setState(uint8_t state, uint8_t forceDelegatesCall)
-{
-	uint8_t prevState = _state;
-	_state = state;
-	Serial.printf("Thermostat %s: %s\n", _name.c_str(), _state ? "true" : "false");
-	if (_state != prevState || forceDelegatesCall)
-	{
-		_callOnStateChangeDelegates();
-	}
-}
+//void ThermostatClass::setState(uint8_t state, uint8_t forceDelegatesCall)
+//{
+//	uint8_t prevState = _state;
+//	_state = state;
+//	Serial.printf("Thermostat %s: %s\n", _name.c_str(), _state ? "true" : "false");
+//	if (_state != prevState || forceDelegatesCall)
+//	{
+//		_callOnStateChangeDelegates();
+//	}
+//}
 
 void ThermostatClass::_check()
 {

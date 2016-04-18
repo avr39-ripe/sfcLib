@@ -9,6 +9,7 @@
 #define LIB_THERMOSTAT_THERMOSTAT_H_
 #include <SmingCore/SmingCore.h>
 #include <tempsensors.h>
+#include <binstate.h>
 
 #ifndef ONSTATECHANGEDELEGATE_TYPE_DEFINED
 #define ONSTATECHANGEDELEGATE
@@ -34,21 +35,22 @@ public:
 	void setTargetTemp(float targetTemp) { _targetTemp = (uint16_t)targetTemp * 100; };
 	float getTargetTempDelta() { return _targetTempDelta / 100; };
 	void setTargetTempDelta(float targetTempDelta) { _targetTempDelta = (uint16_t)targetTempDelta / 100; };
-	uint8_t getState() { return _state; };
-	void setState(uint8_t state, uint8_t forceDelegatesCall = false);
-	void onStateChange(onStateChangeDelegate delegateFunction, uint8_t directState = true);
+	uint8_t getState() { return _state.getState(); };
+	void setState(uint8_t state, uint8_t forceDelegatesCall = false) { _state.setState(state, forceDelegatesCall); };
+	void onStateChange(onStateChangeDelegate delegateFunction, uint8_t directState = true) { _state.onStateChange(delegateFunction, directState); };
 //	void onStateChangeInverse(onStateChangeDelegate delegateFunction);
 	void onHttpConfig(HttpRequest &request, HttpResponse &response);
 	void _saveBinConfig();
 	void _loadBinConfig();
 private:
+	BinStateClass _state;
 	void _check();
-	void _callOnStateChangeDelegates();
+//	void _callOnStateChangeDelegates();
 //	void _saveBinConfig();
 //	void _loadBinConfig();
 	String _name; // some text description of thermostat
 	uint8_t _enabled; //thermostat active (true), ON,  works, updates, changes its _state or turned OFF
-	uint8_t _state; // thermostat state on (true) or off (false)
+//	uint8_t _state; // thermostat state on (true) or off (false)
 	uint8_t _mode; // thermostat mode HEATING = true or COOLING = false
 	uint16_t _targetTemp = 2500; //target temperature for manual mode MULTIPLE BY 100
 	uint16_t _targetTempDelta = 50; //delta +- for both _targetTemp and manualTargetTemp MULTIPLE BY 100
