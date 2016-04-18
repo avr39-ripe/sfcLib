@@ -35,7 +35,7 @@ public:
 	float getTargetTempDelta() { return _targetTempDelta / 100; };
 	void setTargetTempDelta(float targetTempDelta) { _targetTempDelta = (uint16_t)targetTempDelta / 100; };
 	uint8_t getState() { return _state; };
-	void setState(uint8_t state);
+	void setState(uint8_t state, uint8_t forceDelegatesCall = false);
 	void onStateChange(onStateChangeDelegate delegateFunction, uint8_t directState = true);
 //	void onStateChangeInverse(onStateChangeDelegate delegateFunction);
 	void onHttpConfig(HttpRequest &request, HttpResponse &response);

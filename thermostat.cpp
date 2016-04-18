@@ -27,7 +27,8 @@ void ThermostatClass::start()
 	_refreshTimer.initializeMs(_refresh, TimerDelegate(&ThermostatClass::_check, this)).start(true);
 
 	Serial.printf("Start - set init state via delegate\n");
-	_callOnStateChangeDelegates();
+//	_callOnStateChangeDelegates();
+	setState(_state, true);
 
 }
 
@@ -37,7 +38,7 @@ void ThermostatClass::stop(uint8_t setDefaultDisabledState)
 	if (setDefaultDisabledState)
 	{
 //		_state = _disabledDefaultState;
-		setState(_disabledDefaultState);
+		setState(_disabledDefaultState, true);
 		Serial.printf("Stop - set default disabled state via delegate\n");
 //		_callOnStateChangeDelegates();
 	}
@@ -54,6 +55,7 @@ void ThermostatClass::enable(uint8_t enabled)
 		stop();
 	}
 }
+
 void ThermostatClass::onStateChange(onStateChangeDelegate delegateFunction, uint8_t directState)
 {
 	if (directState)
@@ -84,12 +86,12 @@ void ThermostatClass::_callOnStateChangeDelegates()
 //	_onChangeStateInverse.add(delegateFunction);
 //}
 
-void ThermostatClass::setState(uint8_t state)
+void ThermostatClass::setState(uint8_t state, uint8_t forceDelegatesCall)
 {
 	uint8_t prevState = _state;
 	_state = state;
 	Serial.printf("Thermostat %s: %s\n", _name.c_str(), _state ? "true" : "false");
-	if (_state != prevState)
+	if (_state != prevState || forceDelegatesCall)
 	{
 		_callOnStateChangeDelegates();
 	}
