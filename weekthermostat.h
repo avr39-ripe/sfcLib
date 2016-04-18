@@ -10,7 +10,10 @@
 #include <SmingCore/SmingCore.h>
 #include <tempsensors.h>
 
+#ifndef ONSTATECHANGEDELEGATE_TYPE_DEFINED
+#define ONSTATECHANGEDELEGATE
 typedef Delegate<void(uint8_t state)> onStateChangeDelegate;
+#endif
 
 namespace WeekThermostatConst
 {
