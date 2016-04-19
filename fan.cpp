@@ -19,7 +19,7 @@ FanClass::FanClass(TempSensors &tempSensor, ThermostatClass &thermostat, BinInCl
 	_startButton->onStateChange(onStateChangeDelegate(&FanClass::_modeStart, this));
 	_stopButton->onStateChange(onStateChangeDelegate(&FanClass::_modeStop, this));
 //	_fanRelay->setState(false); //No need, disabling thermostat with default stop will turn off fan
-	_thermostat->onStateChange(onStateChangeDelegate(&BinOutClass::setState, _fanRelay));
+	_thermostat->state.onChange(onStateChangeDelegate(&BinOutClass::setState, _fanRelay));
 	_thermostat->stop();
 };
 
