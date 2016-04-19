@@ -9,6 +9,7 @@
 #define INCLUDE_THERMO_H_
 #include <SmingCore/SmingCore.h>
 #include <tempsensors.h>
+#include <binstate.h>
 
 #ifndef ONSTATECHANGEDELEGATE_TYPE_DEFINED
 #define ONSTATECHANGEDELEGATE
@@ -57,13 +58,14 @@ public:
 //	void setSched(uint8_t wDay, uint8_t progNum, uint16_t minutes, float tergetTemp);
 //	SchedUnit getSched(uint8_t wDay, uint8_t progNum);
 	SchedUnit _schedule[7][WeekThermostatConst::maxProg]; // 7 day X maxProg programs in schedule
-	uint8_t getState() { return _state; };
+//	uint8_t getState() { return _state; };
 	String getName() { return _name; };
-	void onStateChange(onStateChangeDelegate delegateFunction);
+//	void onStateChange(onStateChangeDelegate delegateFunction);
+	BinStateClass state;
 private:
 	String _name; // some text description of thermostat
 	uint8_t _active; //thermostat active (true), ON,  works, updates, changes its _state or turned OFF
-	uint8_t _state; // thermostat state on (true) or off (false)
+//	uint8_t _state; // thermostat state on (true) or off (false)
 	uint8_t _manual; //thermostat in manual mode (true) or automatic schedule mode (false)
 	uint16_t _manualTargetTemp = 2000; //target temperature for manual mode MULTIPLE BY 100
 	uint16_t _targetTempDelta = 50; //delta +- for both _targetTemp and manualTargetTemp MULTIPLE BY 100

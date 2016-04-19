@@ -13,7 +13,7 @@ WeekThermostatClass::WeekThermostatClass( TempSensors &tempSensors, uint8_t sens
 	_sensorId = sensorId;
 	_name = name;
 	_refresh = refresh;
-	_state = false;
+	state.set(false);
 	_manual = false;
 	_active = true;
 }
@@ -23,7 +23,7 @@ void WeekThermostatClass::check()
 	float currTemp = _tempSensors->getTemp(_sensorId);
 	float targetTemp = 0;
 	uint8_t currentProg = 0;
-	bool prevState = _state;
+	//bool prevState = _state;
 
 	if (_tempSensors->isValid(_sensorId))
 	{
@@ -37,7 +37,7 @@ void WeekThermostatClass::check()
 
 	if (!_tempSensorValid)
 	{
-		_state = true; // If we lost remote tempsensor we switch termostat on instantly
+		state.set(true); // If we lost remote tempsensor we switch termostat on instantly
 		Serial.printf("Name: %s - TEMPSENSOR ERROR! - WE LOST IT!\n", _name.c_str());
 	}
 	else
@@ -106,16 +106,16 @@ void WeekThermostatClass::check()
 //		Serial.print("targetTemp: "); Serial.print(targetTemp); //FLOAT!!!
 
 		if (currTemp >= targetTemp + (float)(_targetTempDelta / 100.0))
-			_state = false;
+			state.set(false);
 		if (currTemp <= targetTemp - (float)(_targetTempDelta / 100.0))
-			_state = true;
+			state.set(true);
 	}
 //	Serial.printf(" State: %s\n", _state ? "true" : "false");
-	if (prevState != _state && onChangeState)
-	{
-		Serial.printf("onChangeState Delegate/CB called!\n");
-		onChangeState(_state);
-	}
+//	if (prevState != _state && onChangeState)
+//	{
+//		Serial.printf("onChangeState Delegate/CB called!\n");
+//		onChangeState(_state);
+//	}
 }
 
 void WeekThermostatClass::start()
@@ -201,7 +201,7 @@ void WeekThermostatClass::onStateCfg(HttpRequest &request, HttpResponse &respons
 
 		json["name"] = _name;
 		json["active"] = _active;
-		json["state"] = _state;
+		json["state"] = state.get();
 		json["temperature"] = _tempSensors->getTemp(_sensorId);
 		json["manual"] = _manual;
 		json["manualTargetTemp"] = _manualTargetTemp;
@@ -351,7 +351,7 @@ void WeekThermostatClass::loadScheduleBinCfg()
 	fileClose(file);
 }
 
-void WeekThermostatClass::onStateChange(onStateChangeDelegate delegateFunction)
-{
-	onChangeState = delegateFunction;
-}
+//void WeekThermostatClass::onStateChange(onStateChangeDelegate delegateFunction)
+//{
+//	onChangeState = delegateFunction;
+//}
