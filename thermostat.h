@@ -35,15 +35,15 @@ public:
 	void setTargetTemp(float targetTemp) { _targetTemp = (uint16_t)targetTemp * 100; };
 	float getTargetTempDelta() { return _targetTempDelta / 100; };
 	void setTargetTempDelta(float targetTempDelta) { _targetTempDelta = (uint16_t)targetTempDelta / 100; };
-	uint8_t getState() { return _state.getState(); };
-	void setState(uint8_t state, uint8_t forceDelegatesCall = false) { _state.setState(state, forceDelegatesCall); };
-	void onStateChange(onStateChangeDelegate delegateFunction, uint8_t directState = true) { _state.onStateChange(delegateFunction, directState); };
+//	uint8_t get() { return _state.get(); };
+//	void set(uint8_t state, uint8_t forceDelegatesCall = false) { _state.set(state, forceDelegatesCall); };
+//	void onChange(onStateChangeDelegate delegateFunction, uint8_t directState = true) { _state.onChange(delegateFunction, directState); };
 //	void onStateChangeInverse(onStateChangeDelegate delegateFunction);
 	void onHttpConfig(HttpRequest &request, HttpResponse &response);
 	void _saveBinConfig();
 	void _loadBinConfig();
+	BinStateClass state;
 private:
-	BinStateClass _state;
 	void _check();
 //	void _callOnStateChangeDelegates();
 //	void _saveBinConfig();
