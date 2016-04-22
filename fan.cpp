@@ -225,7 +225,7 @@ void FanClass::_checkerStart()
 {
 	Serial.printf("Checker STARTED!\n");
 	_chekerStartTemp = _tempSensor->getTemp();
-	_checkerTimer.initializeMs(_checkerInterval, TimerDelegate(&FanClass::_checkerCheck, this)).start(true);
+	_checkerTimer.initializeMs(_checkerInterval * 60000, TimerDelegate(&FanClass::_checkerCheck, this)).start(true);
 }
 
 void FanClass::_checkerStop()
