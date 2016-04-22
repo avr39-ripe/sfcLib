@@ -53,6 +53,13 @@ private:
 	void _modeStopEnd();
 	void _pereodic();
 	void _pereodicEnd();
+	void _checkerEnable(uint8_t enabled);
+	void _checkerStart();
+	void _checkerStop();
+	void _checkerCheck();
+	float _chekerStartTemp = 0; //Temperature at checkerStart
+	uint16_t _checkerInterval = 60000;
+	Timer _checkerTimer;
 	uint16_t _timerInterval = 0;
 	Timer _fanTimer;
 	TempSensors* _tempSensor;
@@ -65,8 +72,8 @@ private:
 	uint16_t _stopDuration = 1; // turn Fan on for this duration when STOP button pressed, Minutes
 	uint16_t _periodicInterval = 9; // interval to turn on Fan in RUN mode, Minutes
 	uint16_t _periodicDuration = 2; // duration to turn on Fan in RUN mode, Minutes
-	float _periodicStartTemp = 0; // Temperature at periodic start, will be compared to temperature at periodic and
-	uint16_t _periodicTempDelta = 300; // minimum temperature difference after periodic fan turn on, if less go to IDLE mode
+//	float _periodicStartTemp = 0; // Temperature at periodic start, will be compared to temperature at periodic and
+	int16_t _periodicTempDelta = -200; // minimum temperature difference after periodic fan turn on, if less go to IDLE mode
 	uint8_t _maxLowTempCount = 3;
 	uint8_t _periodicCounter = _maxLowTempCount; // if 0 o to IDLE mode;
 };

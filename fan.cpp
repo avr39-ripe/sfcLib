@@ -20,6 +20,7 @@ FanClass::FanClass(TempSensors &tempSensor, ThermostatClass &thermostat, BinInCl
 	_stopButton->onStateChange(onStateChangeDelegate(&FanClass::_modeStop, this));
 //	_fanRelay->setState(false); //No need, disabling thermostat with default stop will turn off fan
 	_thermostat->state.onChange(onStateChangeDelegate(&BinOutClass::setState, _fanRelay));
+	_thermostat->state.onChange(onStateChangeDelegate(&FanClass::_checkerEnable, this));
 	_thermostat->stop();
 };
 
@@ -49,7 +50,7 @@ void FanClass::_modeStartEnd()
 void FanClass::_pereodic()
 {
 	Serial.printf("PREIODIC START\n");
-	_periodicStartTemp = _tempSensor->getTemp();
+//	_periodicStartTemp = _tempSensor->getTemp();
 	_thermostat->stop(false);
 	_fanRelay->setState(true);
 	_fanTimer.initializeMs(_periodicDuration * 60000, TimerDelegate(&FanClass::_pereodicEnd, this)).start(false);
@@ -59,32 +60,32 @@ void FanClass::_pereodic()
 void FanClass::_pereodicEnd()
 {
 	Serial.printf("PREIODIC END\n");
-	float _periodicEndTemp = _tempSensor->getTemp();
-	Serial.printf("Periodic end - startTemp: ");Serial.print(_periodicStartTemp);Serial.printf(" endTemp ");Serial.println(_periodicEndTemp);
-	if (_periodicEndTemp - _periodicStartTemp > (float)(_periodicTempDelta / 100))
-	{
-		_periodicCounter = _maxLowTempCount;
-	} else if (_periodicCounter > 0)
-	{
-		Serial.printf("Seems like no wood left, giving another chance!\n");
-		_periodicCounter--;
-	}
-	if (!_periodicCounter)
-	{
-		Serial.printf("No wood left! going idle!\n");
-//		_fanRelay->setState(false); //No need, disabling thermostat with default stop will turn off fan
-		_thermostat->stop();
-		_fanTimer.stop();
-		_mode = FanMode::IDLE;
-	}
-	else
-	{
+//	float _periodicEndTemp = _tempSensor->getTemp();
+//	Serial.printf("Periodic end - startTemp: ");Serial.print(_periodicStartTemp);Serial.printf(" endTemp ");Serial.println(_periodicEndTemp);
+//	if (_periodicEndTemp - _periodicStartTemp > (float)(_periodicTempDelta / 100))
+//	{
+//		_periodicCounter = _maxLowTempCount;
+//	} else if (_periodicCounter > 0)
+//	{
+//		Serial.printf("Seems like no wood left, giving another chance!\n");
+//		_periodicCounter--;
+//	}
+//	if (!_periodicCounter)
+//	{
+//		Serial.printf("No wood left! going idle!\n");
+////		_fanRelay->setState(false); //No need, disabling thermostat with default stop will turn off fan
+//		_thermostat->stop();
+//		_fanTimer.stop();
+//		_mode = FanMode::IDLE;
+//	}
+//	else
+//	{
 		Serial.printf("PERIODIC - GO TO RUN MODE\n");
 		_fanRelay->setState(false);
 		_thermostat->start();
 		_fanTimer.initializeMs(_periodicInterval * 60000, TimerDelegate(&FanClass::_pereodic, this)).start(false);
 		_mode = FanMode::RUN;
-	}
+//	}
 }
 
 void FanClass::_modeStop(uint8_t state)
@@ -205,5 +206,48 @@ void FanClass::_loadBinConfig()
 		fileRead(file, &_periodicTempDelta, sizeof(_periodicTempDelta));
 		fileRead(file, &_maxLowTempCount, sizeof(_maxLowTempCount));
 		fileClose(file);
+	}
+}
+
+void FanClass::_checkerEnable(uint8_t enabled)
+{
+	if (enabled)
+	{
+		_checkerStart();
+	}
+	else
+	{
+		_checkerStop();
+	}
+}
+
+void FanClass::_checkerStart()
+{
+	Serial.printf("Checker STARTED!\n");
+	_chekerStartTemp = _tempSensor->getTemp();
+	_checkerTimer.initializeMs(_checkerInterval, TimerDelegate(&FanClass::_checkerCheck, this)).start(true);
+}
+
+void FanClass::_checkerStop()
+{
+	Serial.printf("Checker STOPPED!\n");
+	_checkerTimer.stop();
+}
+
+void FanClass::_checkerCheck()
+{
+	float _checkerCheckTemp = _tempSensor->getTemp();
+	Serial.printf("Checker CHECK- startTemp: ");Serial.print(_chekerStartTemp);Serial.printf(" endTemp ");Serial.println(_checkerCheckTemp);
+	if (_checkerCheckTemp - _chekerStartTemp <= (float)(_periodicTempDelta / 100))
+	{
+		Serial.printf("No wood left! Go to IDLE!\n");
+		_thermostat->stop();
+//		_fanRelay->setState(false);
+		_fanTimer.stop();
+		_mode = FanMode::IDLE;
+	}
+	else
+	{
+		Serial.printf("We still have wood! WORKING!\n");
 	}
 }
