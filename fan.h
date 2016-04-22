@@ -73,7 +73,7 @@ private:
 	uint16_t _periodicInterval = 60; // interval to turn on Fan in RUN mode, Minutes
 	uint16_t _periodicDuration = 5; // duration to turn on Fan in RUN mode, Minutes
 //	float _periodicStartTemp = 0; // Temperature at periodic start, will be compared to temperature at periodic and
-	int16_t _periodicTempDelta = -1500; // minimum temperature difference after periodic fan turn on, if less go to IDLE mode
+	int16_t _periodicTempDelta = -1000; // minimum temperature difference after periodic fan turn on, if less go to IDLE mode
 	uint8_t _maxLowTempCount = 3;
 	uint8_t _periodicCounter = _maxLowTempCount; // if 0 o to IDLE mode;
 };
