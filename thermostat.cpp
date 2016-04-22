@@ -27,6 +27,7 @@ void ThermostatClass::start()
 	_refreshTimer.initializeMs(_refresh, TimerDelegate(&ThermostatClass::_check, this)).start(true);
 
 	Serial.printf("Start - set init state via delegate\n");
+	state.set(state.get(),true);
 //	_callOnStateChangeDelegates();
 //	setState(_state, true);
 
