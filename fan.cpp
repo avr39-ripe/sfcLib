@@ -50,7 +50,6 @@ void FanClass::_modeStartEnd()
 void FanClass::_pereodic()
 {
 	Serial.printf("PREIODIC START\n");
-//	_periodicStartTemp = _tempSensor->getTemp();
 	_thermostat->stop(false);
 	_fanRelay->setState(true);
 	_fanTimer.initializeMs(_periodicDuration * 60000, TimerDelegate(&FanClass::_pereodicEnd, this)).start(false);
@@ -59,33 +58,11 @@ void FanClass::_pereodic()
 
 void FanClass::_pereodicEnd()
 {
-	Serial.printf("PREIODIC END\n");
-//	float _periodicEndTemp = _tempSensor->getTemp();
-//	Serial.printf("Periodic end - startTemp: ");Serial.print(_periodicStartTemp);Serial.printf(" endTemp ");Serial.println(_periodicEndTemp);
-//	if (_periodicEndTemp - _periodicStartTemp > (float)(_periodicTempDelta / 100))
-//	{
-//		_periodicCounter = _maxLowTempCount;
-//	} else if (_periodicCounter > 0)
-//	{
-//		Serial.printf("Seems like no wood left, giving another chance!\n");
-//		_periodicCounter--;
-//	}
-//	if (!_periodicCounter)
-//	{
-//		Serial.printf("No wood left! going idle!\n");
-////		_fanRelay->setState(false); //No need, disabling thermostat with default stop will turn off fan
-//		_thermostat->stop();
-//		_fanTimer.stop();
-//		_mode = FanMode::IDLE;
-//	}
-//	else
-//	{
-		Serial.printf("PERIODIC - GO TO RUN MODE\n");
-		_fanRelay->setState(false);
-		_thermostat->start();
-		_fanTimer.initializeMs(_periodicInterval * 60000, TimerDelegate(&FanClass::_pereodic, this)).start(false);
-		_mode = FanMode::RUN;
-//	}
+	Serial.printf("PERIODIC END - GO TO RUN MODE\n");
+	_fanRelay->setState(false);
+	_thermostat->start();
+	_fanTimer.initializeMs(_periodicInterval * 60000, TimerDelegate(&FanClass::_pereodic, this)).start(false);
+	_mode = FanMode::RUN;
 }
 
 void FanClass::_modeStop(uint8_t state)
@@ -150,9 +127,9 @@ void FanClass::onHttpConfig(HttpRequest &request, HttpResponse &response)
 					_periodicTempDelta = root["periodicTempDelta"];
 					needSave = true;
 				}
-				if (root["maxLowTempCount"].success())
+				if (root["checkerInterval"].success())
 				{
-					_maxLowTempCount = root["maxLowTempCount"];
+					_checkerInterval = root["checkerInterval"];
 					needSave = true;
 				}
 				if (needSave)
@@ -171,7 +148,7 @@ void FanClass::onHttpConfig(HttpRequest &request, HttpResponse &response)
 			json["periodicInterval"] = _periodicInterval;
 			json["periodicDuration"] = _periodicDuration;
 			json["periodicTempDelta"] = _periodicTempDelta;
-			json["maxLowTempCount"] = _maxLowTempCount;
+			json["checkerInterval"] = _checkerInterval;
 
 			response.setHeader("Access-Control-Allow-Origin", "*");
 			response.sendJsonObject(stream);
@@ -187,7 +164,7 @@ void FanClass::_saveBinConfig()
 	fileWrite(file, &_periodicInterval, sizeof(_periodicInterval));
 	fileWrite(file, &_periodicDuration, sizeof(_periodicDuration));
 	fileWrite(file, &_periodicTempDelta, sizeof(_periodicTempDelta));
-	fileWrite(file, &_maxLowTempCount, sizeof(_maxLowTempCount));
+	fileWrite(file, &_checkerInterval, sizeof(_checkerInterval));
 	fileClose(file);
 }
 
@@ -204,7 +181,7 @@ void FanClass::_loadBinConfig()
 		fileRead(file, &_periodicInterval, sizeof(_periodicInterval));
 		fileRead(file, &_periodicDuration, sizeof(_periodicDuration));
 		fileRead(file, &_periodicTempDelta, sizeof(_periodicTempDelta));
-		fileRead(file, &_maxLowTempCount, sizeof(_maxLowTempCount));
+		fileRead(file, &_checkerInterval, sizeof(_checkerInterval));
 		fileClose(file);
 	}
 }
@@ -237,8 +214,9 @@ void FanClass::_checkerStop()
 void FanClass::_checkerCheck()
 {
 	float _checkerCheckTemp = _tempSensor->getTemp();
-	Serial.printf("Checker CHECK- startTemp: ");Serial.print(_chekerStartTemp);Serial.printf(" endTemp ");Serial.println(_checkerCheckTemp);
-	if (_checkerCheckTemp - _chekerStartTemp <= (float)(_periodicTempDelta / 100))
+	Serial.printf("Checker CHECK- startTemp: ");Serial.print(_chekerStartTemp);Serial.printf(" endTemp ");Serial.print(_checkerCheckTemp);
+	Serial.printf(" _periodicTempDelta: ");Serial.println((float)(_periodicTempDelta / 100.0));
+	if (_checkerCheckTemp - _chekerStartTemp <= (float)(_periodicTempDelta / 100.0))
 	{
 		Serial.printf("No wood left! Go to IDLE!\n");
 		_thermostat->stop();
