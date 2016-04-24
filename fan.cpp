@@ -43,7 +43,7 @@ void FanClass::_modeStartEnd()
 	_fanRelay->setState(false);
 	_thermostat->start();
 	_periodicCounter = _maxLowTempCount; // Reset pereodicCounter
-	_fanTimer.initializeMs(_periodicInterval * 60000, TimerDelegate(&FanClass::_pereodic, this)).start(false);
+//	_fanTimer.initializeMs(_periodicInterval * 60000, TimerDelegate(&FanClass::_pereodic, this)).start(false);
 	_mode = FanMode::RUN;
 }
 
