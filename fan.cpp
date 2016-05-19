@@ -201,7 +201,7 @@ void FanClass::_checkerEnable(uint8_t enabled)
 void FanClass::_checkerStart()
 {
 	Serial.printf("Checker STARTED!\n");
-	_chekerStartTemp = _tempSensor->getTemp();
+	_chekerMaxTemp = _tempSensor->getTemp();
 	_checkerTimer.initializeMs(_checkerInterval * 60000, TimerDelegate(&FanClass::_checkerCheck, this)).start(true);
 }
 
@@ -214,9 +214,13 @@ void FanClass::_checkerStop()
 void FanClass::_checkerCheck()
 {
 	float _checkerCheckTemp = _tempSensor->getTemp();
-	Serial.printf("Checker CHECK- startTemp: ");Serial.print(_chekerStartTemp);Serial.printf(" endTemp ");Serial.print(_checkerCheckTemp);
+	if (_checkerCheckTemp > _chekerMaxTemp)
+	{
+		_chekerMaxTemp = _checkerCheckTemp;
+	}
+	Serial.printf("Checker CHECK- startTemp: ");Serial.print(_chekerMaxTemp);Serial.printf(" endTemp ");Serial.print(_checkerCheckTemp);
 	Serial.printf(" _periodicTempDelta: ");Serial.println((float)(_periodicTempDelta / 100.0));
-	if (_checkerCheckTemp - _chekerStartTemp <= (float)(_periodicTempDelta / 100.0))
+	if (_checkerCheckTemp - _chekerMaxTemp <= (float)(_periodicTempDelta / 100.0))
 	{
 		Serial.printf("No wood left! Go to IDLE!\n");
 		_thermostat->stop();

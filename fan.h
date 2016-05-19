@@ -57,7 +57,7 @@ private:
 	void _checkerStart();
 	void _checkerStop();
 	void _checkerCheck();
-	float _chekerStartTemp = 0; //Temperature at checkerStart
+	float _chekerMaxTemp = 0; //Temperature at checkerStart
 	uint16_t _checkerInterval = 5; // Checker run interval in minutes
 	Timer _checkerTimer;
 	uint16_t _timerInterval = 0;
