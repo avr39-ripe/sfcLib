@@ -9,16 +9,16 @@
 
 //  ThermostatClass
 
-ThermostatClass::ThermostatClass(TempSensors &tempSensors, uint8_t mode, uint8_t invalidDefaultState, uint8_t disabledDefaulrState, String name, uint16_t refresh)
+ThermostatClass::ThermostatClass(TempSensors &tempSensors, uint8_t mode, uint8_t invalidDefaultState, uint8_t disabledDefaultState, String name, uint16_t refresh)
 {
 	_tempSensors = &tempSensors;
 	_name = name;
 	_refresh = refresh;
-	state.set(disabledDefaulrState,true);
+	state.set(disabledDefaultState,true);
 	_enabled = false;
 	_mode = mode;
 	_invalidDefaultState = invalidDefaultState;
-	_disabledDefaultState = disabledDefaulrState;
+	_disabledDefaultState = disabledDefaultState;
 //	_loadBinConfig();
 }
 
