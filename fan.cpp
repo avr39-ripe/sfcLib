@@ -16,10 +16,10 @@ FanClass::FanClass(TempSensors &tempSensor, ThermostatClass &thermostat, BinInCl
 	_startButton = &startButton;
 	_stopButton = &stopButton;
 	_fanRelay = &fanRelay;
-	_startButton->onStateChange(onStateChangeDelegate(&FanClass::_modeStart, this));
-	_stopButton->onStateChange(onStateChangeDelegate(&FanClass::_modeStop, this));
+	_startButton->state.onChange(onStateChangeDelegate(&FanClass::_modeStart, this));
+	_stopButton->state.onChange(onStateChangeDelegate(&FanClass::_modeStop, this));
 //	_fanRelay->setState(false); //No need, disabling thermostat with default stop will turn off fan
-	_thermostat->state.onChange(onStateChangeDelegate(&BinOutClass::setState, _fanRelay));
+	_thermostat->state.onChange(onStateChangeDelegate(&BinStateClass::set, &_fanRelay->state));
 	_thermostat->state.onChange(onStateChangeDelegate(&FanClass::_checkerEnable, this));
 	_thermostat->stop();
 };
@@ -31,7 +31,7 @@ void FanClass::_modeStart(uint8_t state)
 		_mode = FanMode::START;
 		Serial.printf("START Button pressed\n");
 		_thermostat->stop(false);
-		_fanRelay->setState(true);
+		_fanRelay->state.set(true);
 		//TODO: CHANGE THIS LATER FOR 60000!!!
 		_fanTimer.initializeMs(_startDuration * 60000, TimerDelegate(&FanClass::_modeStartEnd, this)).start(false);
 	}
@@ -40,7 +40,7 @@ void FanClass::_modeStart(uint8_t state)
 void FanClass::_modeStartEnd()
 {
 	Serial.printf("START Finished\n");
-	_fanRelay->setState(false);
+	_fanRelay->state.set(false);
 	_thermostat->start();
 	_periodicCounter = _maxLowTempCount; // Reset pereodicCounter
 //	_fanTimer.initializeMs(_periodicInterval * 60000, TimerDelegate(&FanClass::_pereodic, this)).start(false);
@@ -51,7 +51,7 @@ void FanClass::_pereodic()
 {
 	Serial.printf("PREIODIC START\n");
 	_thermostat->stop(false);
-	_fanRelay->setState(true);
+	_fanRelay->state.set(true);
 	_fanTimer.initializeMs(_periodicDuration * 60000, TimerDelegate(&FanClass::_pereodicEnd, this)).start(false);
 	_mode = FanMode::PERIODIC;
 }
@@ -59,7 +59,7 @@ void FanClass::_pereodic()
 void FanClass::_pereodicEnd()
 {
 	Serial.printf("PERIODIC END - GO TO RUN MODE\n");
-	_fanRelay->setState(false);
+	_fanRelay->state.set(false);
 	_thermostat->start();
 	_fanTimer.initializeMs(_periodicInterval * 60000, TimerDelegate(&FanClass::_pereodic, this)).start(false);
 	_mode = FanMode::RUN;
@@ -72,7 +72,7 @@ void FanClass::_modeStop(uint8_t state)
 		_mode = FanMode::STOP;
 		Serial.printf("STOP Button pressed\n");
 		_thermostat->stop(false);
-		_fanRelay->setState(true);
+		_fanRelay->state.set(true);
 		_fanTimer.initializeMs(_startDuration * 60000, TimerDelegate(&FanClass::_modeStopEnd, this)).start(false);
 	}
 }
@@ -81,7 +81,7 @@ void FanClass::_modeStopEnd()
 {
 	Serial.printf("STOP Finished\n");
 //	_fanRelay->setState(false); //No need, disabling thermostat with default stop will turn off fan
-	_fanRelay->setState(false);
+	_fanRelay->state.set(false);
 	_fanTimer.stop();
 	_mode = FanMode::IDLE;
 }
