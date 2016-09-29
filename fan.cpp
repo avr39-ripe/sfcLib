@@ -9,20 +9,33 @@
 
 // FanClass
 
-FanClass::FanClass(TempSensors &tempSensor, ThermostatClass &thermostat, BinInClass &startButton, BinInClass &stopButton, BinOutClass &fanRelay)
+FanClass::FanClass(TempSensors &tempSensor, ThermostatClass &thermostat, BinOutClass &fanRelay)
 {
 	_tempSensor = &tempSensor;
 	_thermostat = &thermostat;
-	_startButton = &startButton;
-	_stopButton = &stopButton;
 	_fanRelay = &fanRelay;
-	_startButton->state.onChange(onStateChangeDelegate(&FanClass::_modeStart, this));
-	_stopButton->state.onChange(onStateChangeDelegate(&FanClass::_modeStop, this));
+//	_startButton->state.onChange(onStateChangeDelegate(&FanClass::_modeStart, this));
+//	_stopButton->state.onChange(onStateChangeDelegate(&FanClass::_modeStop, this));
+
+	state.onChange(onStateChangeDelegate(&FanClass::_enable, this));
+
 //	_fanRelay->setState(false); //No need, disabling thermostat with default stop will turn off fan
 	_thermostat->state.onChange(onStateChangeDelegate(&BinStateClass::set, &_fanRelay->state));
 	_thermostat->state.onChange(onStateChangeDelegate(&FanClass::_checkerEnable, this));
 	_thermostat->stop();
 };
+
+void FanClass::_enable(uint8_t enableState)
+{
+	if (enableState)
+	{
+		_modeStart(enableState);
+	}
+	else
+	{
+		_modeStop(!enableState);
+	}
+}
 
 void FanClass::_modeStart(uint8_t state)
 {
@@ -74,6 +87,7 @@ void FanClass::_modeStop(uint8_t state)
 		_thermostat->stop(false);
 		_fanRelay->state.set(true);
 		_fanTimer.initializeMs(_startDuration * 60000, TimerDelegate(&FanClass::_modeStopEnd, this)).start(false);
+
 	}
 }
 

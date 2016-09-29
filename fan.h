@@ -8,10 +8,10 @@
 #ifndef LIB_FAN_FAN_H_
 #define LIB_FAN_FAN_H_
 #include <SmingCore/SmingCore.h>
-#include <tempsensors.h>
 #include <binin.h>
 #include <binout.h>
 #include <thermostat.h>
+#include <tempsensors.h>
 
 namespace FanMode
 {
@@ -27,7 +27,7 @@ namespace FanMode
 class FanClass
 {
 public:
-	FanClass(TempSensors &tempSensor, ThermostatClass &thermostat, BinInClass &startButton, BinInClass &stopButton, BinOutClass &fanRelay);
+	FanClass(TempSensors &tempSensor, ThermostatClass &thermostat, BinOutClass &fanRelay);
 	virtual ~FanClass() {};
 	void start();
 	void stop();
@@ -46,10 +46,11 @@ public:
 	void onHttpConfig(HttpRequest &request, HttpResponse &response);
 	void _saveBinConfig();
 	void _loadBinConfig();
-private:
+	BinStateClass state;
 	void _modeStart(uint8_t state);
-	void _modeStartEnd();
 	void _modeStop(uint8_t state);
+private:
+	void _modeStartEnd();
 	void _modeStopEnd();
 	void _pereodic();
 	void _pereodicEnd();
@@ -57,14 +58,13 @@ private:
 	void _checkerStart();
 	void _checkerStop();
 	void _checkerCheck();
+	void _enable(uint8_t enableState);
 	float _chekerMaxTemp = 0; //Temperature at checkerStart
 	uint16_t _checkerInterval = 5; // Checker run interval in minutes
 	Timer _checkerTimer;
 	uint16_t _timerInterval = 0;
 	Timer _fanTimer;
 	TempSensors* _tempSensor;
-	BinInClass* _startButton;
-	BinInClass* _stopButton;
 	BinOutClass* _fanRelay;
 	ThermostatClass* _thermostat;
 	uint8_t _mode = FanMode::IDLE;
