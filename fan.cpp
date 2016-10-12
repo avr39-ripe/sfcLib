@@ -19,6 +19,7 @@ FanClass::FanClass(TempSensors &tempSensor, ThermostatClass &thermostat, BinOutC
 
 	state.onChange(onStateChangeDelegate(&FanClass::_enable, this));
 
+//	_thermostatControlState.onChange(onStateChangeDelegate(&BinStateClass::set,&_thermostat->state));
 //	_fanRelay->setState(false); //No need, disabling thermostat with default stop will turn off fan
 	_thermostat->state.onChange(onStateChangeDelegate(&BinStateClass::set, &_fanRelay->state));
 	_thermostat->state.onChange(onStateChangeDelegate(&FanClass::_checkerEnable, this));
@@ -54,7 +55,10 @@ void FanClass::_modeStartEnd()
 {
 	Serial.printf("START Finished\n");
 	_fanRelay->state.set(false);
-	_thermostat->start();
+//	use weekThermostat as source to enable-disable fan thermostat
+//	_thermostat->start();
+	_thermostat->enable(_thermostatControlState);
+
 	_periodicCounter = _maxLowTempCount; // Reset pereodicCounter
 //	_fanTimer.initializeMs(_periodicInterval * 60000, TimerDelegate(&FanClass::_pereodic, this)).start(false);
 	_mode = FanMode::RUN;
@@ -73,7 +77,9 @@ void FanClass::_pereodicEnd()
 {
 	Serial.printf("PERIODIC END - GO TO RUN MODE\n");
 	_fanRelay->state.set(false);
-	_thermostat->start();
+//	use weekThermostat as source to enable-disable fan thermostat
+//	_thermostat->start();
+	_thermostat->enable(_thermostatControlState);
 	_fanTimer.initializeMs(_periodicInterval * 60000, TimerDelegate(&FanClass::_pereodic, this)).start(false);
 	_mode = FanMode::RUN;
 }
@@ -245,5 +251,14 @@ void FanClass::_checkerCheck()
 	else
 	{
 		Serial.printf("We still have wood! WORKING!\n");
+	}
+}
+
+void FanClass::setThermostatControlState(uint8_t state)
+{
+	_thermostatControlState = state;
+	if (_mode == FanMode::RUN)
+	{
+		_thermostat->enable(_thermostatControlState);
 	}
 }

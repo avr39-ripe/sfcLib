@@ -49,7 +49,9 @@ public:
 	BinStateClass state;
 	void _modeStart(uint8_t state);
 	void _modeStop(uint8_t state);
+	void setThermostatControlState(uint8_t state);
 private:
+	uint8_t _thermostatControlState;
 	void _modeStartEnd();
 	void _modeStopEnd();
 	void _pereodic();
