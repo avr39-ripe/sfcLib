@@ -31,6 +31,7 @@ public:
 	void start();
 	void stop(uint8_t setDefaultDisabledState = true);
 	void enable(uint8_t enabled);
+	void disable(uint8_t disabled) { enable(!disabled); };
 	float getTargetTemp() { return _targetTemp / 100; };
 	void setTargetTemp(float targetTemp) { _targetTemp = (uint16_t)targetTemp * 100; };
 	float getTargetTempDelta() { return _targetTempDelta / 100; };
