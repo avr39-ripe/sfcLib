@@ -64,23 +64,41 @@ void FanClass::_modeStartEnd()
 	_mode = FanMode::RUN;
 }
 
-void FanClass::_pereodic()
+void FanClass::_periodicDisable(uint8_t disabled)
+{
+	if ( disabled && _fanTimer.isStarted() )
+	{
+		_periodicEnd();
+		_fanTimer.stop();
+	}
+	if ( !disabled )
+	{
+		_periodicStart();
+	}
+}
+
+void FanClass::_periodicStart()
+{
+	_fanTimer.initializeMs(_periodicInterval * 60000, TimerDelegate(&FanClass::_periodic, this)).start(false);
+}
+
+void FanClass::_periodic()
 {
 	Serial.printf("PREIODIC START\n");
-	_thermostat->stop(false);
+//	_thermostat->stop(false); //disabled by weekthermostat
 	_fanRelay->state.set(true);
-	_fanTimer.initializeMs(_periodicDuration * 60000, TimerDelegate(&FanClass::_pereodicEnd, this)).start(false);
+	_fanTimer.initializeMs(_periodicDuration * 60000, TimerDelegate(&FanClass::_periodicEnd, this)).start(false);
 	_mode = FanMode::PERIODIC;
 }
 
-void FanClass::_pereodicEnd()
+void FanClass::_periodicEnd()
 {
 	Serial.printf("PERIODIC END - GO TO RUN MODE\n");
 	_fanRelay->state.set(false);
 //	use weekThermostat as source to enable-disable fan thermostat
 //	_thermostat->start();
-	_thermostat->enable(_thermostatControlState);
-	_fanTimer.initializeMs(_periodicInterval * 60000, TimerDelegate(&FanClass::_pereodic, this)).start(false);
+//	_thermostat->enable(_thermostatControlState); //disabled by weekthermostat
+	_fanTimer.initializeMs(_periodicInterval * 60000, TimerDelegate(&FanClass::_periodic, this)).start(false);
 	_mode = FanMode::RUN;
 }
 
@@ -92,7 +110,7 @@ void FanClass::_modeStop(uint8_t state)
 		Serial.printf("STOP Button pressed\n");
 		_thermostat->stop(false);
 		_fanRelay->state.set(true);
-		_fanTimer.initializeMs(_startDuration * 60000, TimerDelegate(&FanClass::_modeStopEnd, this)).start(false);
+		_fanTimer.initializeMs(_stopDuration * 60000, TimerDelegate(&FanClass::_modeStopEnd, this)).start(false);
 
 	}
 }

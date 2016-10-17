@@ -51,11 +51,13 @@ public:
 	void _modeStop(uint8_t state);
 	void setThermostatControlState(uint8_t state);
 private:
-	uint8_t _thermostatControlState;
+	uint8_t _thermostatControlState = false;
 	void _modeStartEnd();
 	void _modeStopEnd();
-	void _pereodic();
-	void _pereodicEnd();
+	void _periodicDisable(uint8_t enabled);
+	void _periodicStart();
+	void _periodic();
+	void _periodicEnd();
 	void _checkerEnable(uint8_t enabled);
 	void _checkerStart();
 	void _checkerStop();
