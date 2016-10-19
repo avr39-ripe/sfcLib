@@ -58,22 +58,25 @@ void FanClass::_modeStartEnd()
 //	use weekThermostat as source to enable-disable fan thermostat
 //	_thermostat->start();
 	_thermostat->enable(_thermostatControlState);
-
-	_periodicCounter = _maxLowTempCount; // Reset pereodicCounter
 //	_fanTimer.initializeMs(_periodicInterval * 60000, TimerDelegate(&FanClass::_pereodic, this)).start(false);
 	_mode = FanMode::RUN;
+	periodicDisable(_thermostatControlState);
 }
 
-void FanClass::_periodicDisable(uint8_t disabled)
+void FanClass::periodicDisable(uint8_t disabled)
 {
-	if ( disabled && _fanTimer.isStarted() )
+	if ( _mode == FanMode::RUN ||  _mode == FanMode::PERIODIC )
 	{
-		_periodicEnd();
-		_fanTimer.stop();
-	}
-	if ( !disabled )
-	{
-		_periodicStart();
+		if ( disabled && _fanTimer.isStarted() )
+		{
+			_periodicEnd();
+			_fanTimer.stop();
+			_thermostat->enable(_thermostatControlState); //disabled by weekthermostat
+		}
+		if ( !disabled )
+		{
+			_periodicStart();
+		}
 	}
 }
 
@@ -97,7 +100,6 @@ void FanClass::_periodicEnd()
 	_fanRelay->state.set(false);
 //	use weekThermostat as source to enable-disable fan thermostat
 //	_thermostat->start();
-//	_thermostat->enable(_thermostatControlState); //disabled by weekthermostat
 	_fanTimer.initializeMs(_periodicInterval * 60000, TimerDelegate(&FanClass::_periodic, this)).start(false);
 	_mode = FanMode::RUN;
 }
@@ -109,6 +111,7 @@ void FanClass::_modeStop(uint8_t state)
 		_mode = FanMode::STOP;
 		Serial.printf("STOP Button pressed\n");
 		_thermostat->stop(false);
+		periodicDisable(true);
 		_fanRelay->state.set(true);
 		_fanTimer.initializeMs(_stopDuration * 60000, TimerDelegate(&FanClass::_modeStopEnd, this)).start(false);
 

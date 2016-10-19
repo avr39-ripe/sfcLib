@@ -50,6 +50,7 @@ public:
 	void _modeStart(uint8_t state);
 	void _modeStop(uint8_t state);
 	void setThermostatControlState(uint8_t state);
+	void periodicDisable(uint8_t enabled);
 private:
 	uint8_t _thermostatControlState = false;
 	void _modeStartEnd();
@@ -79,6 +80,5 @@ private:
 //	float _periodicStartTemp = 0; // Temperature at periodic start, will be compared to temperature at periodic and
 	int16_t _periodicTempDelta = -1000; // minimum temperature difference after periodic fan turn on, if less go to IDLE mode
 	uint8_t _maxLowTempCount = 3;
-	uint8_t _periodicCounter = _maxLowTempCount; // if 0 o to IDLE mode;
 };
 #endif /* LIB_FAN_FAN_H_ */
