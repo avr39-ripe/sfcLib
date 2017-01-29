@@ -47,6 +47,7 @@ public:
 	void _saveBinConfig();
 	void _loadBinConfig();
 	BinStateClass state;
+	BinStateClass active;
 	void _modeStart(uint8_t state);
 	void _modeStop(uint8_t state);
 	void setThermostatControlState(uint8_t state);

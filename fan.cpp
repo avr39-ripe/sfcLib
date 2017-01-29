@@ -18,7 +18,7 @@ FanClass::FanClass(TempSensors &tempSensor, ThermostatClass &thermostat, BinOutC
 //	_stopButton->state.onChange(onStateChangeDelegate(&FanClass::_modeStop, this));
 
 	state.onChange(onStateChangeDelegate(&FanClass::_enable, this));
-
+	active.set(false);
 //	_thermostatControlState.onChange(onStateChangeDelegate(&BinStateClass::set,&_thermostat->state));
 //	_fanRelay->setState(false); //No need, disabling thermostat with default stop will turn off fan
 	_thermostat->state.onChange(onStateChangeDelegate(&BinStateClass::set, &_fanRelay->state));
@@ -43,6 +43,7 @@ void FanClass::_modeStart(uint8_t state)
 	if (state)
 	{
 		_mode = FanMode::START;
+		active.set(true);
 		Serial.printf("START Button pressed\n");
 		_thermostat->stop(false);
 		_fanRelay->state.set(true);
@@ -109,6 +110,7 @@ void FanClass::_modeStop(uint8_t state)
 	if (state)
 	{
 		_mode = FanMode::STOP;
+		active.set(true);
 		Serial.printf("STOP Button pressed\n");
 		_thermostat->stop(false);
 		periodicDisable(true);
@@ -125,6 +127,7 @@ void FanClass::_modeStopEnd()
 	_fanRelay->state.set(false);
 	_fanTimer.stop();
 	_mode = FanMode::IDLE;
+	active.set(false);
 }
 
 void FanClass::onHttpConfig(HttpRequest &request, HttpResponse &response)
@@ -268,6 +271,7 @@ void FanClass::_checkerCheck()
 //		_fanRelay->setState(false);
 		_fanTimer.stop();
 		_mode = FanMode::IDLE;
+		active.set(false);
 	}
 	else
 	{
