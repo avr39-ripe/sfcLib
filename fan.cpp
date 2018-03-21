@@ -132,19 +132,20 @@ void FanClass::_modeStopEnd()
 
 void FanClass::onHttpConfig(HttpRequest &request, HttpResponse &response)
 {
-	if (request.getRequestMethod() == RequestMethod::POST)
+	if (request.method == HTTP_POST)
 		{
-			if (request.getBody() == NULL)
+			String body = request.getBody();
+			if (body == NULL)
 			{
-				debugf("NULL bodyBuf");
+				debug_d("NULL bodyBuf");
 				return;
 			}
 			else
 			{
 				uint8_t needSave = false;
 				DynamicJsonBuffer jsonBuffer;
-				JsonObject& root = jsonBuffer.parseObject(request.getBody());
-				root.prettyPrintTo(Serial); //Uncomment it for debuging
+				JsonObject& root = jsonBuffer.parseObject(body);
+//				root.prettyPrintTo(Serial); //Uncomment it for debuging
 
 				if (root["startDuration"].success())
 				{
