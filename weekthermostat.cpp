@@ -155,18 +155,19 @@ uint8_t WeekThermostatClass::loadStateCfg()
 }
 void WeekThermostatClass::onStateCfg(HttpRequest &request, HttpResponse &response)
 {
-	if (request.getRequestMethod() == RequestMethod::POST)
+	if (request.method == HTTP_POST)
 	{
-		if (request.getBody() == NULL)
+		String body = request.getBody();
+		if (body == NULL)
 		{
-			debugf("NULL bodyBuf");
+			debug_d("NULL bodyBuf");
 			return;
 		}
 		else
 		{
 			StaticJsonBuffer<stateJsonBufSize> jsonBuffer;
-			JsonObject& root = jsonBuffer.parseObject(request.getBody());
-			root.prettyPrintTo(Serial); //Uncomment it for debuging
+			JsonObject& root = jsonBuffer.parseObject(body);
+//			root.prettyPrintTo(Serial); //Uncomment it for debuging
 
 			if (root["active"].success()) // Settings
 			{
@@ -261,9 +262,10 @@ uint8_t WeekThermostatClass::loadScheduleCfg()
 void WeekThermostatClass::onScheduleCfg(HttpRequest &request, HttpResponse &response)
 {
 	StaticJsonBuffer<scheduleJsonBufSize> jsonBuffer;
-	if (request.getRequestMethod() == RequestMethod::POST)
+	if (request.method == HTTP_POST)
 	{
-		if (request.getBody() == NULL)
+		String body = request.getBody();
+		if (body == NULL)
 		{
 			Serial.println("NULL bodyBuf");
 			return;
@@ -271,9 +273,8 @@ void WeekThermostatClass::onScheduleCfg(HttpRequest &request, HttpResponse &resp
 		else
 		{
 
-			Serial.println(request.getBody());
-			JsonObject& root = jsonBuffer.parseObject(request.getBody());
-			root.prettyPrintTo(Serial); //Uncomment it for debuging
+			JsonObject& root = jsonBuffer.parseObject(body);
+//			root.prettyPrintTo(Serial); //Uncomment it for debuging
 
 			for (uint8_t day = 0; day < 7; day++)
 			{
@@ -310,7 +311,7 @@ void WeekThermostatClass::onScheduleCfg(HttpRequest &request, HttpResponse &resp
 		root.printTo(buf, sizeof(buf));
 
 		response.setHeader("Access-Control-Allow-Origin", "*");
-		response.setContentType(ContentType::JSON);
+		response.setContentType(MIME_JSON);
 		response.sendString(buf);
 	}
 }
