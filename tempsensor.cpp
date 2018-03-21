@@ -153,21 +153,21 @@ TempSensorHttp::TempSensorHttp(String url, uint16_t refresh)
 
 void TempSensorHttp::_temp_start()
 {
-	if (_httpClient.isProcessing())
-		return; // We need to wait while request processing was completed
-	else
-		_httpClient.downloadString(_url, HttpClientCompletedDelegate(&TempSensorHttp::_temp_read, this));
+//	if (_httpClient.isProcessing())
+//		return; // We need to wait while request processing was completed
+//	else
+		_httpClient.downloadString(_url, RequestCompletedDelegate(&TempSensorHttp::_temp_read, this));
 
 }
 
-void TempSensorHttp::_temp_read(HttpClient& client, bool successful)
+int TempSensorHttp::_temp_read(HttpConnection& connection, bool successful)
 {
 //	Serial.println("temp-read");
 	if (successful)
 	{
 //	Serial.println("tr-succes");
 		_connectionStatus = TempsensorConnectionStatus::CONNECTED;
-		String response = client.getResponseString();
+		String response = connection.getResponseString();
 		if (response.length() > 0)
 		{
 //		Serial.println("res>0");

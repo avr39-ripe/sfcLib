@@ -77,7 +77,7 @@ public:
 
 private:
 	virtual void _temp_start();
-	void _temp_read(HttpClient& client, bool successful);
+	int _temp_read(HttpConnection& connection, bool successful);
 	void _getHttpTemp();
 	HttpClient _httpClient;
 	Vector<String> _addresses;

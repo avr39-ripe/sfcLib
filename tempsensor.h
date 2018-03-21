@@ -49,7 +49,7 @@ public:
 	virtual ~TempSensorHttp() {};
 private:
 	virtual void _temp_start();
-	void _temp_read(HttpClient& client, bool successful);
+	int _temp_read(HttpConnection& connection, bool successful);
 	HttpClient _httpClient;
 	String _url;
 	uint8_t _connectionStatus; // Tempsensor connection status

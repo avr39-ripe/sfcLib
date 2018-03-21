@@ -36,7 +36,7 @@ void TempSensors::addSensor()
 
 void TempSensors::onHttpGet(HttpRequest &request, HttpResponse &response)
 {
-	if (request.getRequestMethod() == RequestMethod::GET)
+	if (request.method == HTTP_GET)
 	{
 		DynamicJsonBuffer jsonBuffer;
 		String buf;
@@ -64,16 +64,17 @@ void TempSensors::onHttpGet(HttpRequest &request, HttpResponse &response)
 		root.printTo(buf);
 
 		response.setHeader("Access-Control-Allow-Origin", "*");
-		response.setContentType(ContentType::JSON);
+		response.setContentType(MIME_JSON);
 		response.sendString(buf);
 	}
 }
 
 void TempSensors::onHttpConfig(HttpRequest &request, HttpResponse &response)
 {
-	if (request.getRequestMethod() == RequestMethod::POST)
+	if (request.method == HTTP_POST)
 		{
-			if (request.getBody() == NULL)
+			String body = request.getBody();
+			if (body == NULL)
 			{
 				debugf("NULL bodyBuf");
 				return;
@@ -82,8 +83,8 @@ void TempSensors::onHttpConfig(HttpRequest &request, HttpResponse &response)
 			{
 				uint8_t needSave = false;
 				DynamicJsonBuffer jsonBuffer;
-				JsonObject& root = jsonBuffer.parseObject(request.getBody());
-				root.prettyPrintTo(Serial); //Uncomment it for debuging
+				JsonObject& root = jsonBuffer.parseObject(body);
+//				root.prettyPrintTo(Serial); //Uncomment it for debuging
 				String queryParam = request.getQueryParameter("sensor", "-1");
 				if (queryParam != "-1")
 				{
@@ -133,7 +134,7 @@ void TempSensors::onHttpConfig(HttpRequest &request, HttpResponse &response)
 			root.printTo(buf);
 
 			response.setHeader("Access-Control-Allow-Origin", "*");
-			response.setContentType(ContentType::JSON);
+			response.setContentType(MIME_JSON);
 			response.sendString(buf);
 		}
 }
@@ -350,15 +351,15 @@ void TempSensorsHttp::addSensor(String url)
 
 void TempSensorsHttp::_getHttpTemp()
 {
-	if (_httpClient.isProcessing())
-	{
-		return; // We need to wait while request processing was completed
-	}
-	else
-	{
-		_httpClient.reset();
-		_httpClient.downloadString(_addresses[_currentSensorId], HttpClientCompletedDelegate(&TempSensorsHttp::_temp_read, this));
-	}
+//	if (_httpClient.isProcessing())
+//	{
+//		return; // We need to wait while request processing was completed
+//	}
+//	else
+//	{
+//		_httpClient.reset();
+		_httpClient.downloadString(_addresses[_currentSensorId], RequestCompletedDelegate(&TempSensorsHttp::_temp_read, this));
+//	}
 
 }
 void TempSensorsHttp::_temp_start()
@@ -374,13 +375,13 @@ void TempSensorsHttp::_temp_start()
 	}
 }
 
-void TempSensorsHttp::_temp_read(HttpClient& client, bool successful)
+int TempSensorsHttp::_temp_read(HttpConnection& connection, bool successful)
 {
 //	Serial.println("temp-read");
 	if (successful)
 	{
 //	Serial.println("tr-succes");
-		String response = client.getResponseString();
+		String response = connection.getResponseString();
 		if (response.length() > 0)
 		{
 //		Serial.println("res>0");
