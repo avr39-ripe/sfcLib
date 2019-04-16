@@ -13,7 +13,7 @@
 
 #ifndef ONSTATECHANGEDELEGATE_TYPE_DEFINED
 #define ONSTATECHANGEDELEGATE
-typedef Delegate<void(uint8_t state)> onStateChangeDelegate;
+typedef std::function<void(uint8_t state)> onStateChangeDelegate;
 #endif
 
 namespace WeekThermostatConst
