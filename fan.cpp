@@ -17,12 +17,12 @@ FanClass::FanClass(TempSensors &tempSensor, ThermostatClass &thermostat, BinOutC
 //	_startButton->state.onChange(onStateChangeDelegate(&FanClass::_modeStart, this));
 //	_stopButton->state.onChange(onStateChangeDelegate(&FanClass::_modeStop, this));
 
-	state.onChange(onStateChangeDelegate(&FanClass::_enable, this));
+	state.onChange(std::bind(&FanClass::_enable, this, std::placeholders::_1));
 	active.set(false);
 //	_thermostatControlState.onChange(onStateChangeDelegate(&BinStateClass::set,&_thermostat->state));
 //	_fanRelay->setState(false); //No need, disabling thermostat with default stop will turn off fan
-	_thermostat->state.onChange(onStateChangeDelegate(&BinStateClass::set, &_fanRelay->state));
-	_thermostat->state.onChange(onStateChangeDelegate(&FanClass::_checkerEnable, this));
+	_thermostat->state.onChange(std::bind(static_cast<void (BinStateClass::*) (uint8_t)>(&BinStateClass::set), &_fanRelay->state, std::placeholders::_1));
+	_thermostat->state.onChange(std::bind(&FanClass::_checkerEnable, this, std::placeholders::_1));
 	_thermostat->stop();
 };
 
