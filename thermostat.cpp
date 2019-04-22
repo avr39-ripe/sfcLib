@@ -24,7 +24,7 @@ ThermostatClass::ThermostatClass(TempSensors &tempSensors, uint8_t mode, uint8_t
 
 void ThermostatClass::start()
 {
-	_refreshTimer.initializeMs(_refresh, TimerDelegate(&ThermostatClass::_check, this)).start(true);
+	_refreshTimer.initializeMs(_refresh, [=](){this->_check();}).start(true);
 
 	Serial.printf("Start - set init state via delegate\n");
 	state.set(state.get(),true);
@@ -183,8 +183,8 @@ void ThermostatClass::onHttpConfig(HttpRequest &request, HttpResponse &response)
 			json["targetTemp"] = _targetTemp;
 			json["targetTempDelta"] = _targetTempDelta;
 
-			response.setHeader("Access-Control-Allow-Origin", "*");
-			response.sendJsonObject(stream);
+			response.setAllowCrossDomainOrigin("*");
+			response.sendDataStream(stream, MIME_JSON);
 		}
 }
 

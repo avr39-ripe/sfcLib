@@ -120,7 +120,7 @@ void WeekThermostatClass::check()
 
 void WeekThermostatClass::start()
 {
-	_refreshTimer.initializeMs(_refresh, TimerDelegate(&WeekThermostatClass::check, this)).start(true);
+	_refreshTimer.initializeMs(_refresh, [=](){this->check();}).start(true);
 //	_tempSensor->start();
 }
 
@@ -208,8 +208,8 @@ void WeekThermostatClass::onStateCfg(HttpRequest &request, HttpResponse &respons
 		json["manualTargetTemp"] = _manualTargetTemp;
 		json["targetTempDelta"] = _targetTempDelta;
 
-		response.setHeader("Access-Control-Allow-Origin", "*");
-		response.sendJsonObject(stream);
+		response.setAllowCrossDomainOrigin("*");
+		response.sendDataStream(stream, MIME_JSON);
 	}
 }
 
@@ -294,8 +294,8 @@ void WeekThermostatClass::onScheduleCfg(HttpRequest &request, HttpResponse &resp
 	}
 	else
 	{
-//		StaticJsonBuffer<scheduleJsonBufSize> jsonBuffer;
-		JsonObject& root = jsonBuffer.createObject();
+		JsonObjectStream* stream = new JsonObjectStream();
+		JsonObject& root = stream->getRoot();
 		for (uint8_t day = 0; day < 7; day++)
 		{
 			JsonArray& jsonDay = root.createNestedArray((String)day);
@@ -307,12 +307,8 @@ void WeekThermostatClass::onScheduleCfg(HttpRequest &request, HttpResponse &resp
 				jsonDay.add(jsonProg);
 			}
 		}
-		char buf[scheduleFileBufSize];
-		root.printTo(buf, sizeof(buf));
-
-		response.setHeader("Access-Control-Allow-Origin", "*");
-		response.setContentType(MIME_JSON);
-		response.sendString(buf);
+		response.setAllowCrossDomainOrigin("*");
+		response.sendDataStream(stream, MIME_JSON);
 	}
 }
 uint8_t WeekThermostatClass::saveScheduleCfg()
