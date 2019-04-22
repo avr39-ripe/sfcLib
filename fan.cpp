@@ -48,7 +48,7 @@ void FanClass::_modeStart(uint8_t state)
 		_thermostat->stop(false);
 		_fanRelay->state.set(true);
 		//TODO: CHANGE THIS LATER FOR 60000!!!
-		_fanTimer.initializeMs(_startDuration * 60000, TimerDelegate(&FanClass::_modeStartEnd, this)).start(false);
+		_fanTimer.initializeMs(_startDuration * 60000, [=](){this->_modeStartEnd();}).start(false);
 	}
 }
 
@@ -83,7 +83,7 @@ void FanClass::periodicDisable(uint8_t disabled)
 
 void FanClass::_periodicStart()
 {
-	_fanTimer.initializeMs(_periodicInterval * 60000, TimerDelegate(&FanClass::_periodic, this)).start(false);
+	_fanTimer.initializeMs(_periodicInterval * 60000, [=](){this->_periodic();}).start(false);
 }
 
 void FanClass::_periodic()
@@ -91,7 +91,7 @@ void FanClass::_periodic()
 	Serial.printf("PREIODIC START\n");
 //	_thermostat->stop(false); //disabled by weekthermostat
 	_fanRelay->state.set(true);
-	_fanTimer.initializeMs(_periodicDuration * 60000, TimerDelegate(&FanClass::_periodicEnd, this)).start(false);
+	_fanTimer.initializeMs(_periodicDuration * 60000, [=](){this->_periodicEnd();}).start(false);
 	_mode = FanMode::PERIODIC;
 }
 
@@ -101,7 +101,7 @@ void FanClass::_periodicEnd()
 	_fanRelay->state.set(false);
 //	use weekThermostat as source to enable-disable fan thermostat
 //	_thermostat->start();
-	_fanTimer.initializeMs(_periodicInterval * 60000, TimerDelegate(&FanClass::_periodic, this)).start(false);
+	_fanTimer.initializeMs(_periodicInterval * 60000, [=](){this->_periodic();}).start(false);
 	_mode = FanMode::RUN;
 }
 
@@ -115,7 +115,7 @@ void FanClass::_modeStop(uint8_t state)
 		_thermostat->stop(false);
 		periodicDisable(true);
 		_fanRelay->state.set(true);
-		_fanTimer.initializeMs(_stopDuration * 60000, TimerDelegate(&FanClass::_modeStopEnd, this)).start(false);
+		_fanTimer.initializeMs(_stopDuration * 60000, [=](){this->_modeStopEnd();}).start(false);
 
 	}
 }
@@ -195,8 +195,8 @@ void FanClass::onHttpConfig(HttpRequest &request, HttpResponse &response)
 			json["periodicTempDelta"] = _periodicTempDelta;
 			json["checkerInterval"] = _checkerInterval;
 
-			response.setHeader("Access-Control-Allow-Origin", "*");
-			response.sendJsonObject(stream);
+			response.setAllowCrossDomainOrigin("*");
+			response.sendDataStream(stream, MIME_JSON);
 		}
 }
 
@@ -247,7 +247,7 @@ void FanClass::_checkerStart()
 {
 	Serial.printf("Checker STARTED!\n");
 	_chekerMaxTemp = _tempSensor->getTemp();
-	_checkerTimer.initializeMs(_checkerInterval * 60000, TimerDelegate(&FanClass::_checkerCheck, this)).start(true);
+	_checkerTimer.initializeMs(_checkerInterval * 60000, [=](){this->_checkerCheck();}).start(true);
 }
 
 void FanClass::_checkerStop()
