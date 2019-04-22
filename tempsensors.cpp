@@ -15,7 +15,7 @@ TempSensors::TempSensors(uint16_t refresh)
 
 void TempSensors::start()
 {
-	_refreshTimer.initializeMs(_refresh, TimerDelegate(&TempSensors::_temp_start, this)).start(true);
+	_refreshTimer.initializeMs(_refresh, [=](){this->_temp_start();}).start(true);
 }
 
 void TempSensors::stop()
@@ -38,9 +38,12 @@ void TempSensors::onHttpGet(HttpRequest &request, HttpResponse &response)
 {
 	if (request.method == HTTP_GET)
 	{
-		DynamicJsonBuffer jsonBuffer;
-		String buf;
-		JsonObject& root = jsonBuffer.createObject();
+		JsonObjectStream* stream = new JsonObjectStream();
+		JsonObject& root = stream->getRoot();
+
+//		DynamicJsonBuffer jsonBuffer;
+//		String buf;
+//		JsonObject& root = jsonBuffer.createObject();
 		String queryParam = request.getQueryParameter("sensor", "-1");
 		if (queryParam == "-1")
 		{
@@ -61,11 +64,13 @@ void TempSensors::onHttpGet(HttpRequest &request, HttpResponse &response)
 			}
 		}
 
-		root.printTo(buf);
+//		root.printTo(buf);
 
-		response.setHeader("Access-Control-Allow-Origin", "*");
-		response.setContentType(MIME_JSON);
-		response.sendString(buf);
+//		response.setHeader("Access-Control-Allow-Origin", "*");
+//		response.setContentType(MIME_JSON);
+//		response.sendString(buf);
+		response.setAllowCrossDomainOrigin("*");
+		response.sendDataStream(stream, MIME_JSON);
 	}
 }
 
@@ -108,9 +113,8 @@ void TempSensors::onHttpConfig(HttpRequest &request, HttpResponse &response)
 		}
 		else
 		{
-			DynamicJsonBuffer jsonBuffer;
-			String buf;
-			JsonObject& root = jsonBuffer.createObject();
+			JsonObjectStream* stream = new JsonObjectStream();
+			JsonObject& root = stream->getRoot();
 			String queryParam = request.getQueryParameter("sensor", "-1");
 			if (queryParam == "-1")
 			{
@@ -130,12 +134,8 @@ void TempSensors::onHttpConfig(HttpRequest &request, HttpResponse &response)
 					root["calMult"] = _data[id]->_calMult;
 				}
 			}
-
-			root.printTo(buf);
-
-			response.setHeader("Access-Control-Allow-Origin", "*");
-			response.setContentType(MIME_JSON);
-			response.sendString(buf);
+			response.setAllowCrossDomainOrigin("*");
+			response.sendDataStream(stream, MIME_JSON);
 		}
 }
 
@@ -266,7 +266,7 @@ void TempSensorsOW::_temp_start()
 		_ds->skip();
 		_ds->write(0x44); // start conversion
 
-		_temp_readTimer.initializeMs(190, TimerDelegate(&TempSensorsOW::_temp_read, this)).start(false);
+		_temp_readTimer.initializeMs(190, [=](){this->_temp_read();}).start(false);
 	}
 }
 
@@ -381,7 +381,7 @@ int TempSensorsHttp::_temp_read(HttpConnection& connection, bool successful)
 	if (successful)
 	{
 //	Serial.println("tr-succes");
-		String response = connection.getResponseString();
+		String response = connection.getResponse()->getBody();
 		if (response.length() > 0)
 		{
 //		Serial.println("res>0");
@@ -405,7 +405,7 @@ int TempSensorsHttp::_temp_read(HttpConnection& connection, bool successful)
 	{
 		Serial.printf("Read next sensor: %d\n", _currentSensorId + 1);
 		_currentSensorId++;
-		_httpTimer.initializeMs(100, TimerDelegate(&TempSensorsHttp::_getHttpTemp, this)).start(false);
+		_httpTimer.initializeMs(100, [=](){this->_getHttpTemp();}).start(false);
 //		_getHttpTemp(_currentSensorId++);
 	}
 	else

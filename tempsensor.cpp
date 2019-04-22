@@ -18,7 +18,7 @@ TempSensor::TempSensor(uint16_t refresh)
 
 void TempSensor::start()
 {
-	_refreshTimer.initializeMs(_refresh, TimerDelegate(&TempSensor::_temp_start, this)).start(true);
+	_refreshTimer.initializeMs(_refresh, [=](){this->_temp_start();}).start(true);
 }
 
 void TempSensor::stop()
@@ -60,7 +60,7 @@ void TempSensorOW::_temp_start()
 		_ds->skip();
 		_ds->write(0x44); // start conversion
 
-		_temp_readTimer.initializeMs(190, TimerDelegate(&TempSensorOW::_temp_read, this)).start(false);
+		_temp_readTimer.initializeMs(190, [=](){this->_temp_read();}).start(false);
 	}
 }
 
@@ -167,7 +167,7 @@ int TempSensorHttp::_temp_read(HttpConnection& connection, bool successful)
 	{
 //	Serial.println("tr-succes");
 		_connectionStatus = TempsensorConnectionStatus::CONNECTED;
-		String response = connection.getResponseString();
+		String response = connection.getResponse()->getBody();
 		if (response.length() > 0)
 		{
 //		Serial.println("res>0");
