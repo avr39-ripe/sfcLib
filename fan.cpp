@@ -44,7 +44,7 @@ void FanClass::_modeStart(uint8_t state)
 	{
 		_mode = FanMode::START;
 		active.set(true);
-		Serial.printf("START Button pressed\n");
+		Serial.printf(_F("START Button pressed\n"));
 		_thermostat->stop(false);
 		_fanRelay->state.set(true);
 		//TODO: CHANGE THIS LATER FOR 60000!!!
@@ -54,7 +54,7 @@ void FanClass::_modeStart(uint8_t state)
 
 void FanClass::_modeStartEnd()
 {
-	Serial.printf("START Finished\n");
+	Serial.printf(_F("START Finished\n"));
 	_fanRelay->state.set(false);
 //	use weekThermostat as source to enable-disable fan thermostat
 //	_thermostat->start();
@@ -88,7 +88,7 @@ void FanClass::_periodicStart()
 
 void FanClass::_periodic()
 {
-	Serial.printf("PREIODIC START\n");
+	Serial.printf(_F("PREIODIC START\n"));
 //	_thermostat->stop(false); //disabled by weekthermostat
 	_fanRelay->state.set(true);
 	_fanTimer.initializeMs(_periodicDuration * 60000, [=](){this->_periodicEnd();}).start(false);
@@ -97,7 +97,7 @@ void FanClass::_periodic()
 
 void FanClass::_periodicEnd()
 {
-	Serial.printf("PERIODIC END - GO TO RUN MODE\n");
+	Serial.printf(_F("PERIODIC END - GO TO RUN MODE\n"));
 	_fanRelay->state.set(false);
 //	use weekThermostat as source to enable-disable fan thermostat
 //	_thermostat->start();
@@ -111,7 +111,7 @@ void FanClass::_modeStop(uint8_t state)
 	{
 		_mode = FanMode::STOP;
 		active.set(true);
-		Serial.printf("STOP Button pressed\n");
+		Serial.printf(_F("STOP Button pressed\n"));
 		_thermostat->stop(false);
 		periodicDisable(true);
 		_fanRelay->state.set(true);
@@ -122,7 +122,7 @@ void FanClass::_modeStop(uint8_t state)
 
 void FanClass::_modeStopEnd()
 {
-	Serial.printf("STOP Finished\n");
+	Serial.printf(_F("STOP Finished\n"));
 //	_fanRelay->setState(false); //No need, disabling thermostat with default stop will turn off fan
 	_fanRelay->state.set(false);
 	_fanTimer.stop();
@@ -202,7 +202,7 @@ void FanClass::onHttpConfig(HttpRequest &request, HttpResponse &response)
 
 void FanClass::_saveBinConfig()
 {
-	Serial.printf("Try to save bin cfg..\n");
+	Serial.printf(_F("Try to save bin cfg..\n"));
 	file_t file = fileOpen("fan.config", eFO_CreateIfNotExist | eFO_WriteOnly);
 	fileWrite(file, &_startDuration, sizeof(_startDuration));
 	fileWrite(file, &_stopDuration, sizeof(_stopDuration));
@@ -215,10 +215,10 @@ void FanClass::_saveBinConfig()
 
 void FanClass::_loadBinConfig()
 {
-	Serial.printf("Try to load bin cfg..\n");
+	Serial.printf(_F("Try to load bin cfg..\n"));
 	if (fileExist("fan.config"))
 	{
-		Serial.printf("Will load bin cfg..\n");
+		Serial.printf(_F("Will load bin cfg..\n"));
 		file_t file = fileOpen("fan.config", eFO_ReadOnly);
 		fileSeek(file, 0, eSO_FileStart);
 		fileRead(file, &_startDuration, sizeof(_startDuration));
@@ -245,14 +245,14 @@ void FanClass::_checkerEnable(uint8_t enabled)
 
 void FanClass::_checkerStart()
 {
-	Serial.printf("Checker STARTED!\n");
+	Serial.printf(_F("Checker STARTED!\n"));
 	_chekerMaxTemp = _tempSensor->getTemp();
 	_checkerTimer.initializeMs(_checkerInterval * 60000, [=](){this->_checkerCheck();}).start(true);
 }
 
 void FanClass::_checkerStop()
 {
-	Serial.printf("Checker STOPPED!\n");
+	Serial.printf(_F("Checker STOPPED!\n"));
 	_checkerTimer.stop();
 }
 
@@ -263,11 +263,11 @@ void FanClass::_checkerCheck()
 	{
 		_chekerMaxTemp = _checkerCheckTemp;
 	}
-	Serial.printf("Checker CHECK- startTemp: ");Serial.print(_chekerMaxTemp);Serial.printf(" endTemp ");Serial.print(_checkerCheckTemp);
-	Serial.printf(" _periodicTempDelta: ");Serial.println((float)(_periodicTempDelta / 100.0));
+	Serial.printf(_F("Checker CHECK- startTemp: "));Serial.print(_chekerMaxTemp);Serial.printf(_F(" endTemp "));Serial.print(_checkerCheckTemp);
+	Serial.printf(_F(" _periodicTempDelta: "));Serial.println((float)(_periodicTempDelta / 100.0));
 	if (_checkerCheckTemp - _chekerMaxTemp <= (float)(_periodicTempDelta / 100.0))
 	{
-		Serial.printf("No wood left! Go to IDLE!\n");
+		Serial.printf(_F("No wood left! Go to IDLE!\n"));
 		_thermostat->stop();
 //		_fanRelay->setState(false);
 		_fanTimer.stop();
@@ -276,7 +276,7 @@ void FanClass::_checkerCheck()
 	}
 	else
 	{
-		Serial.printf("We still have wood! WORKING!\n");
+		Serial.printf(_F("We still have wood! WORKING!\n"));
 	}
 }
 
