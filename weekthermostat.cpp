@@ -151,7 +151,7 @@ uint8_t WeekThermostatClass::loadStateCfg()
 		delete[] jsonString;
 		return 0;
 	}
-
+	return 0;
 }
 void WeekThermostatClass::onStateCfg(HttpRequest &request, HttpResponse &response)
 {
@@ -331,6 +331,7 @@ uint8_t WeekThermostatClass::saveScheduleCfg()
 	char buf[scheduleFileBufSize];
 	root.printTo(buf, sizeof(buf));
 	fileSetContent(".sched" + _name, buf);
+	return 0;
 }
 
 void WeekThermostatClass::saveScheduleBinCfg()

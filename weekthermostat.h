@@ -5,9 +5,8 @@
  *      Author: shurik
  */
 
-#ifndef INCLUDE_THERMO_H_
-#define INCLUDE_THERMO_H_
-#include <SmingCore/SmingCore.h>
+#pragma once
+#include <SmingCore.h>
 #include <tempsensors.h>
 #include <binstate.h>
 
@@ -78,7 +77,3 @@ private:
 	onStateChangeDelegate onChangeState = nullptr;
 	uint8_t _tempSensorValid = WeekThermostatConst::maxInvalidGetTemp; // if more than zero we STILL trust tempSensor temperature if less zero NOT trust
 };
-
-
-
-#endif /* INCLUDE_THERMO_H_ */

@@ -5,9 +5,8 @@
  *      Author: shurik
  */
 
-#ifndef LIB_THERMOSTAT_THERMOSTAT_H_
-#define LIB_THERMOSTAT_THERMOSTAT_H_
-#include <SmingCore/SmingCore.h>
+#pragma once
+#include <SmingCore.h>
 #include <tempsensors.h>
 #include <binstate.h>
 
@@ -27,7 +26,7 @@ const uint8_t maxInvalidGetTemp = 10; // max unhealthy getTemp before we assume 
 class ThermostatClass
 {
 public:
-	ThermostatClass(TempSensors &tempSensors, uint8_t mode = ThermostatMode::HEATING, uint8_t invalidDefaultState = true, uint8_t disabledDefaulrState = false, String name = "Thermostat", uint16_t refresh = 4000);
+	ThermostatClass(TempSensors &tempSensors, uint8_t sensorId, uint8_t mode = ThermostatMode::HEATING, uint8_t invalidDefaultState = true, uint8_t disabledDefaulrState = false, String name = "Thermostat", uint16_t refresh = 4000);
 	void start();
 	void stop(uint8_t setDefaultDisabledState = true);
 	void enable(uint8_t enabled);
@@ -58,7 +57,7 @@ private:
 	uint16_t _refresh; // thermostat update interval
 	Timer _refreshTimer; // timer for thermostat update
 	TempSensors *_tempSensors;
-//	uint8_t	_sensorId;
+	uint8_t	_sensorId;
 	Vector<onStateChangeDelegate> _onChangeState; // call them with _state as argument
 	Vector<onStateChangeDelegate> _onChangeStateInverse; // call them with !_state as argument
 	uint8_t _invalidDefaultState = true;
@@ -66,5 +65,3 @@ private:
 	uint8_t _tempSensorValid = maxInvalidGetTemp; // if more than zero we STILL trust tempSensor temperature if less zero NOT trust
 
 };
-
-#endif /* LIB_THERMOSTAT_THERMOSTAT_H_ */
