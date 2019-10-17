@@ -5,9 +5,9 @@
  *      Author: shurik
  */
 
-#ifndef LIB_TEMPSENSOR_TEMPSENSORS_H_
-#define LIB_TEMPSENSOR_TEMPSENSORS_H_
-#include <SmingCore/SmingCore.h>
+#pragma once
+#include <SmingCore.h>
+#include <JsonObjectStream.h>
 #include <Libraries/OneWire/OneWire.h>
 
 namespace TempSensorStatus
@@ -84,4 +84,3 @@ private:
 	uint8_t _currentSensorId;
 	Timer _httpTimer;
 };
-#endif /* LIB_TEMPSENSOR_TEMPSENSORS_H_ */

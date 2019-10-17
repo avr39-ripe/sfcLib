@@ -413,4 +413,5 @@ int TempSensorsHttp::_temp_read(HttpConnection& connection, bool successful)
 		Serial.printf("Last sensor! Wait for timer event!\n");
 		_currentSensorId = 0;
 	}
+	return 0;
 }

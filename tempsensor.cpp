@@ -186,4 +186,5 @@ int TempSensorHttp::_temp_read(HttpConnection& connection, bool successful)
 		_connectionStatus = TempsensorConnectionStatus::DISCONNECTED;
 		_healthy = 0;
 	}
+	return 0;
 }

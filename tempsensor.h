@@ -1,6 +1,6 @@
-#ifndef INCLUDE_TEMPSENSOR_H_
-#define INCLUDE_TEMPSENSOR_H_
-#include <SmingCore/SmingCore.h>
+#pragma once
+#include <SmingCore.h>
+#include <JsonObjectStream.h>
 #include <Libraries/OneWire/OneWire.h>
 
 namespace TempsensorConnectionStatus
@@ -54,6 +54,3 @@ private:
 	String _url;
 	uint8_t _connectionStatus; // Tempsensor connection status
 };
-
-
-#endif /* INCLUDE_TEMPSENSOR_H_ */
