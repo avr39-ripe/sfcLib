@@ -28,7 +28,7 @@ void TempSensor::stop()
 
 void TempSensor::_temp_start()
 {
-	Serial.println("TPMS BASE START");
+	Serial.println(_F("TPMS BASE START"));
 	return;
 }
 

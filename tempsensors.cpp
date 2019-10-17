@@ -141,7 +141,7 @@ void TempSensors::onHttpConfig(HttpRequest &request, HttpResponse &response)
 
 void TempSensors::_saveBinConfig()
 {
-	Serial.printf("Try to save bin cfg..\n");
+	Serial.printf(_F("Try to save bin cfg..\n"));
 	file_t file = fileOpen("tmpsensors", eFO_CreateIfNotExist | eFO_WriteOnly);
 	for (uint8_t id=0; id < _data.count(); id++)
 	{
@@ -153,10 +153,10 @@ void TempSensors::_saveBinConfig()
 
 void TempSensors::_loadBinConfig()
 {
-	Serial.printf("Try to load bin cfg..\n");
+	Serial.printf(_F("Try to load bin cfg..\n"));
 	if (fileExist("tmpsensors"))
 	{
-		Serial.printf("Will load bin cfg..\n");
+		Serial.printf(_F("Will load bin cfg..\n"));
 		file_t file = fileOpen("tmpsensors", eFO_ReadOnly);
 		fileSeek(file, 0, eSO_FileStart);
 		for (uint8_t id=0; id < _data.count(); id++)
@@ -241,10 +241,10 @@ void TempSensorsOW::_hexStrToAddress(String addrStr, uint8_t* addrArray)
 			}
 			addrArray[(index/2)] += value << (((index + 1) % 2) * 4);
 		}
-		Serial.printf("OWADDR: ");
+		Serial.printf(_F("OWADDR: "));
 		for (uint8_t i = 0; i<8; i++)
 		{
-			Serial.printf("%02X", addrArray[i]);
+			Serial.printf(_F("%02X"), addrArray[i]);
 		}
 		Serial.println();
 	}
@@ -300,13 +300,13 @@ void TempSensorsOW::_temp_read()
 		{
 			if (_temp_data[0] == 0x50 && _temp_data[1] == 0x05)
 			{
-				Serial.printf("DS18B20 id: %d invalid temperature\n", id);
+				Serial.printf(_F("DS18B20 id: %d invalid temperature\n"), id);
 				_data[id]->_statusFlag = TempSensorStatus::INVALID;
 				continue;
 			}
 			if (OneWire::crc8(_temp_data, 8) != _temp_data[8])
 			{
-				Serial.printf("DS18B20 id: %d invalid crc!\n", id);
+				Serial.printf(_F("DS18B20 id: %d invalid crc!\n"), id);
 				_data[id]->_statusFlag = TempSensorStatus::INVALID;
 				continue;
 			}
@@ -319,11 +319,11 @@ void TempSensorsOW::_temp_read()
 				_data[id]->_temperature = (float)(tempRead / 16.0);
 
 			_data[id]->_statusFlag = 0; // current value of _temperature is GOOD, healthy
-			Serial.printf("ID: %d - ", id); Serial.println(_data[id]->_temperature);
+			Serial.printf(_F("ID: %d - "), id); Serial.println(_data[id]->_temperature);
 		}
 		else
 		{
-			Serial.printf("no DS18B20 device present at id: %d!\n", id);
+			Serial.printf(_F("no DS18B20 device present at id: %d!\n"), id);
 			_data[id]->_statusFlag = (TempSensorStatus::DISCONNECTED | TempSensorStatus::INVALID);
 			continue;
 		}
@@ -370,7 +370,7 @@ void TempSensorsHttp::_temp_start()
 	}
 	else
 	{
-		Serial.printf("Last sequesnce not complete, will wait another period!\n");
+		Serial.printf(_F("Last sequesnce not complete, will wait another period!\n"));
 		_refreshTimer.start(true);
 	}
 }
@@ -393,24 +393,24 @@ int TempSensorsHttp::_temp_read(HttpConnection& connection, bool successful)
 				_data[_currentSensorId]->_temperature = root["temperature"];
 				_data[_currentSensorId]->_statusFlag = root["statusFlag"];
 			}
-			Serial.printf("ID: %d - ", _currentSensorId); Serial.println(_data[_currentSensorId]->_temperature);
+			Serial.printf(_F("ID: %d - "), _currentSensorId); Serial.println(_data[_currentSensorId]->_temperature);
 		}
 	}
 	else
 	{
 		_data[_currentSensorId]->_statusFlag = (TempSensorStatus::DISCONNECTED | TempSensorStatus::INVALID);
-		Serial.printf("NET PROBLEM unsucces request\n");
+		Serial.printf(_F("NET PROBLEM unsucces request\n"));
 	}
 	if (_currentSensorId < _data.count()-1)
 	{
-		Serial.printf("Read next sensor: %d\n", _currentSensorId + 1);
+		Serial.printf(_F("Read next sensor: %d\n"), _currentSensorId + 1);
 		_currentSensorId++;
 		_httpTimer.initializeMs(100, [=](){this->_getHttpTemp();}).start(false);
 //		_getHttpTemp(_currentSensorId++);
 	}
 	else
 	{
-		Serial.printf("Last sensor! Wait for timer event!\n");
+		Serial.printf(_F("Last sensor! Wait for timer event!\n"));
 		_currentSensorId = 0;
 	}
 	return 0;
