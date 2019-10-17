@@ -5,9 +5,8 @@
  *      Author: shurik
  */
 
-#ifndef LIB_FAN_FAN_H_
-#define LIB_FAN_FAN_H_
-#include <SmingCore/SmingCore.h>
+#pragma once
+#include <SmingCore.h>
 #include <binin.h>
 #include <binout.h>
 #include <thermostat.h>
@@ -82,4 +81,3 @@ private:
 	int16_t _periodicTempDelta = -1000; // minimum temperature difference after periodic fan turn on, if less go to IDLE mode
 	uint8_t _maxLowTempCount = 3;
 };
-#endif /* LIB_FAN_FAN_H_ */
