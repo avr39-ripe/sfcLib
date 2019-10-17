@@ -32,19 +32,19 @@ void WeekThermostatClass::check()
 	else if (_tempSensorValid > 0)
 	{
 		_tempSensorValid--;
-		Serial.printf("Name: %s - TEMPSENSOR ERROR!, %d\n", _name.c_str(), _tempSensorValid);
+		Serial.printf(_F("Name: %s - TEMPSENSOR ERROR!, %d\n"), _name.c_str(), _tempSensorValid);
 	}
 
 	if (!_tempSensorValid)
 	{
 		state.set(true); // If we lost remote tempsensor we switch termostat on instantly
-		Serial.printf("Name: %s - TEMPSENSOR ERROR! - WE LOST IT!\n", _name.c_str());
+		Serial.printf(_F("Name: %s - TEMPSENSOR ERROR! - WE LOST IT!\n"), _name.c_str());
 	}
 	else
 	{
 		if (!_active)
 		{
-			Serial.println("active = false");
+			Serial.println(_F("active = false"));
 			targetTemp = WeekThermostatConst::antiFrozen;
 		}
 		else
@@ -78,14 +78,14 @@ void WeekThermostatClass::check()
 
 			if (_manual && !_prevManual)
 			{
-				Serial.println("turn Manual on by user");
+				Serial.println(_F("turn Manual on by user"));
 				_prevManual = true;
 				_manualProg = currentProg;
 	//			targetTemp = float(_manualTargetTemp / 100.0);
 			}
 			else if (_prevManual && !_manual)
 			{
-				Serial.println("turn Manual off by user");
+				Serial.println(_F("turn Manual off by user"));
 				_prevManual = false;
 			}
 
@@ -96,7 +96,7 @@ void WeekThermostatClass::check()
 
 			if (_manual && (_manualProg != currentProg))
 			{
-				Serial.println("turn Manual off with program change");
+				Serial.println(_F("turn Manual off with program change"));
 				_manual = false;
 				_prevManual = false;
 				targetTemp = (float)daySchedule[currentProg].targetTemp / 100.0; //in-place convert to float
@@ -147,7 +147,7 @@ uint8_t WeekThermostatClass::loadStateCfg()
 		_manualTargetTemp = root["manualTargetTemp"];
 		_targetTempDelta = root["targetTempDelta"];
 
-		Serial.printf("Name: %s, Active: %d, Manual: %d, ManualTT: %d, TTDelta: %d\n",_name.c_str(),_active,_manual,_manualTargetTemp, _targetTempDelta);
+		Serial.printf(_F("Name: %s, Active: %d, Manual: %d, ManualTT: %d, TTDelta: %d\n"),_name.c_str(),_active,_manual,_manualTargetTemp, _targetTempDelta);
 		delete[] jsonString;
 		return 0;
 	}
@@ -246,12 +246,12 @@ uint8_t WeekThermostatClass::loadScheduleCfg()
 
 		for (uint8_t day = 0; day < 7; day++)
 			{
-			Serial.printf("%d: ", day);
+			Serial.printf(_F("%d: "), day);
 				for (uint8_t prog = 0; prog < WeekThermostatConst::maxProg; prog++)
 				{
 					_schedule[day][prog].start = root[(String)day][prog]["s"];
 					_schedule[day][prog].targetTemp = root[(String)day][prog]["tt"];
-					Serial.printf("{s: %d,tt: %d}", _schedule[day][prog].start, _schedule[day][prog].targetTemp);
+					Serial.printf(_F("{s: %d,tt: %d}"), _schedule[day][prog].start, _schedule[day][prog].targetTemp);
 				}
 				Serial.println();
 			}
@@ -267,7 +267,7 @@ void WeekThermostatClass::onScheduleCfg(HttpRequest &request, HttpResponse &resp
 		String body = request.getBody();
 		if (body == NULL)
 		{
-			Serial.println("NULL bodyBuf");
+			Serial.println(_F("NULL bodyBuf"));
 			return;
 		}
 		else
@@ -284,7 +284,7 @@ void WeekThermostatClass::onScheduleCfg(HttpRequest &request, HttpResponse &resp
 				  {
 					  _schedule[day][prog].start = root[(String)day][prog]["s"];
 					  _schedule[day][prog].targetTemp = root[(String)day][prog]["tt"];
-					  Serial.printf("{s: %d,tt: %d}", _schedule[day][prog].start, _schedule[day][prog].targetTemp);
+					  Serial.printf(_F("{s: %d,tt: %d}"), _schedule[day][prog].start, _schedule[day][prog].targetTemp);
 				  }
 				  saveScheduleBinCfg();
 				  return;

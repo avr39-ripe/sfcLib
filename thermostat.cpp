@@ -20,7 +20,7 @@ void ThermostatClass::start()
 {
 	_refreshTimer.initializeMs(_refresh, [=](){this->_check();}).start(true);
 
-	Serial.printf("Start - set init state via delegate\n");
+	Serial.printf(_F("Start - set init state via delegate\n"));
 	state.set(state.get(),true);
 //	_callOnStateChangeDelegates();
 //	setState(_state, true);
@@ -34,7 +34,7 @@ void ThermostatClass::stop(uint8_t setDefaultDisabledState)
 	{
 //		_state = _disabledDefaultState;
 		state.set(_disabledDefaultState, true);
-		Serial.printf("Stop - set default disabled state via delegate\n");
+		Serial.printf(_F("Stop - set default disabled state via delegate\n"));
 //		_callOnStateChangeDelegates();
 	}
 }
@@ -103,12 +103,12 @@ void ThermostatClass::_check()
 	else if (_tempSensorValid > 0)
 	{
 		_tempSensorValid--;
-		Serial.printf("Name: %s - TEMPSENSOR ERROR!, %d\n", _name.c_str(), _tempSensorValid);
+		Serial.printf(_F("Name: %s - TEMPSENSOR ERROR!, %d\n"), _name.c_str(), _tempSensorValid);
 	}
 
 	if (!_tempSensorValid)
 	{
-		Serial.printf("We lost tempsensor! - set invalidDefaultstate via delegate!\n");
+		Serial.printf(_F("We lost tempsensor! - set invalidDefaultstate via delegate!\n"));
 		state.set(_invalidDefaultState);
 //		_state = _invalidDefaultState; // If we lost tempsensor we set thermostat to Default Invalid State
 //		if (_onChangeState)
@@ -116,7 +116,7 @@ void ThermostatClass::_check()
 //			Serial.printf("We lost tempsensor! - set invalidDefaultstate via delegate!\n");
 //			_onChangeState(_state);
 //		}
-		Serial.printf("Name: %s - TEMPSENSOR ERROR! - WE LOST IT!\n", _name.c_str());
+		Serial.printf(_F("Name: %s - TEMPSENSOR ERROR! - WE LOST IT!\n"), _name.c_str());
 	}
 	else
 	{
@@ -184,7 +184,7 @@ void ThermostatClass::onHttpConfig(HttpRequest &request, HttpResponse &response)
 
 void ThermostatClass::_saveBinConfig()
 {
-	Serial.printf("Try to save bin cfg..\n");
+	Serial.printf(_F("Try to save bin cfg..\n"));
 	file_t file = fileOpen("tstat" + _name, eFO_CreateIfNotExist | eFO_WriteOnly);
 	fileWrite(file, &_targetTemp, sizeof(_targetTemp));
 	fileWrite(file, &_targetTempDelta, sizeof(_targetTempDelta));
@@ -193,10 +193,10 @@ void ThermostatClass::_saveBinConfig()
 
 void ThermostatClass::_loadBinConfig()
 {
-	Serial.printf("Try to load bin cfg..\n");
+	Serial.printf(_F("Try to load bin cfg..\n"));
 	if (fileExist("tstat" + _name))
 	{
-		Serial.printf("Will load bin cfg..\n");
+		Serial.printf(_F("Will load bin cfg..\n"));
 		file_t file = fileOpen("tstat" + _name, eFO_ReadOnly);
 		fileSeek(file, 0, eSO_FileStart);
 		fileRead(file, &_targetTemp, sizeof(_targetTemp));
