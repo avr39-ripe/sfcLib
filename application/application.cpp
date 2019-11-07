@@ -438,7 +438,7 @@ void ApplicationClass::OtaUpdate()
 	// request switch and reboot on success
 	//otaUpdater->switchToRom(slot);
 	// and/or set a callback (called on failure or success without switching requested)
-	otaUpdater->setCallback(OtaUpdateDelegate(&ApplicationClass::OtaUpdate_CallBack,this));
+	otaUpdater->setCallback([this](RbootHttpUpdater& client, bool result){this->OtaUpdate_CallBack(client,result);});
 
 	// start update
 	otaUpdater->start();
