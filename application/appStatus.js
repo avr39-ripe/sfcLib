@@ -4,12 +4,13 @@ import { websocket } from 'websocket';
 import wsBin from 'wsBin';
 
 
-export default function AppStatusClass() {
+export default function AppStatusClass(needRender = true) {
 	this._counter = 0;
 	this._timestamp = 0;
 	this._dateStr = "";
 	this._timer = 0;
 	this._enable = false;
+	this._needRender = needRender;
 }
 
 AppStatusClass.sysId = 1;
@@ -26,7 +27,7 @@ AppStatusClass.prototype.wsBinProcess = function (bin) {
 		var d = new Date();
 		d.setTime(this._timestamp * 1000);
 		this._dateStr = d.toLocaleString().replace(/,\ /,'<br>');
-		this.renderStatus();
+		if (this._needRender) { this.renderStatus(); };
 	}
 }
 
@@ -59,7 +60,7 @@ AppStatusClass.prototype.enable = function( enable ) {
 			clearInterval(this._timer);
 			this.remove();
 		} else {
-			this.render();
+			if (this._needRender) { this.render(); };
 			this.wsGetAppStatus()
 			this._timer = setInterval(this.wsGetAppStatus, 5000);
 		}	
