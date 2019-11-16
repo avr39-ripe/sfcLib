@@ -9,13 +9,13 @@
 
 //TempSensos
 TempSensors::TempSensors(uint16_t refresh)
+: _refresh{refresh}
 {
-	_refresh = refresh;
 }
 
 void TempSensors::start()
 {
-	_refreshTimer.initializeMs(_refresh, [=](){this->_temp_start();}).start(true);
+	_refreshTimer.initializeMs(_refresh, [this](){this->_temp_start();}).start(true);
 }
 
 void TempSensors::stop()
@@ -266,7 +266,7 @@ void TempSensorsOW::_temp_start()
 		_ds->skip();
 		_ds->write(0x44); // start conversion
 
-		_temp_readTimer.initializeMs(190, [=](){this->_temp_read();}).start(false);
+		_temp_readTimer.initializeMs(190, [this](){this->_temp_read();}).start(false);
 	}
 }
 
@@ -318,7 +318,7 @@ void TempSensorsOW::_temp_read()
 			else
 				_data[id]->_temperature = (float)(tempRead / 16.0);
 
-			_data[id]->_statusFlag = 0; // current value of _temperature is GOOD, healthy
+			_data[id]->_statusFlag = TempSensorStatus::HEALTHY; // current value of _temperature is GOOD, healthy
 			Serial.printf(_F("ID: %d - "), id); Serial.println(_data[id]->_temperature);
 		}
 		else
@@ -346,72 +346,54 @@ void TempSensorsHttp::addSensor()
 void TempSensorsHttp::addSensor(String url)
 {
 	TempSensors::addSensor();
-	_addresses.add(url);
+	_addresses.push_back(url);
+	_httpTimers.push_back(new Timer); // Timer for setting _statusFlag to invalid state if no reply from sensor received
 }
 
-void TempSensorsHttp::_getHttpTemp()
+void TempSensorsHttp::_getHttpTemp(uint8_t sensorId)
 {
-//	if (_httpClient.isProcessing())
-//	{
-//		return; // We need to wait while request processing was completed
-//	}
-//	else
-//	{
-//		_httpClient.reset();
-		_httpClient.downloadString(_addresses[_currentSensorId], RequestCompletedDelegate(&TempSensorsHttp::_temp_read, this));
-//	}
-
+	_httpClient.downloadString(_addresses[sensorId], [this,sensorId](HttpConnection& connection, bool successful)->int
+			{
+				this->_temp_read(connection, successful, sensorId);
+				return 0;
+			});
+	_httpTimers[sensorId]->initializeMs(5000, [this,sensorId]()
+			{
+				this->_data[sensorId]->_statusFlag = (TempSensorStatus::DISCONNECTED | TempSensorStatus::INVALID);
+			}).startOnce(); // Fire timer that will invalid statusFlag if no reply received
 }
 void TempSensorsHttp::_temp_start()
 {
-	if (_currentSensorId == 0)
+	for(int i=0; i<_data.count(); ++i)
 	{
-		_getHttpTemp();
-	}
-	else
-	{
-		Serial.printf(_F("Last sequesnce not complete, will wait another period!\n"));
-		_refreshTimer.start(true);
+		_getHttpTemp(i);
 	}
 }
 
-int TempSensorsHttp::_temp_read(HttpConnection& connection, bool successful)
+int TempSensorsHttp::_temp_read(HttpConnection& connection, bool successful, uint8_t sensorId)
 {
-//	Serial.println("temp-read");
 	if (successful)
 	{
-//	Serial.println("tr-succes");
 		String response = connection.getResponse()->getBody();
 		if (response.length() > 0)
 		{
-//		Serial.println("res>0");
 			StaticJsonBuffer<200> jsonBuffer;
 			JsonObject& root = jsonBuffer.parseObject(response);
 //			root.prettyPrintTo(Serial); //Uncomment it for debuging
 			if (root["temperature"].success())
 			{
-				_data[_currentSensorId]->_temperature = root["temperature"];
-				_data[_currentSensorId]->_statusFlag = root["statusFlag"];
+				_data[sensorId]->_temperature = root["temperature"];
+				_data[sensorId]->_statusFlag = root["statusFlag"];
 			}
-			Serial.printf(_F("ID: %d - "), _currentSensorId); Serial.println(_data[_currentSensorId]->_temperature);
+			Serial.printf(_F("ID: %d - "), sensorId); Serial.println(_data[sensorId]->_temperature);
+			_httpTimers[sensorId]->stop(); // Stop timer that must set _statusFlag to (TempSensorStatus::DISCONNECTED | TempSensorStatus::INVALID)
 		}
 	}
 	else
 	{
-		_data[_currentSensorId]->_statusFlag = (TempSensorStatus::DISCONNECTED | TempSensorStatus::INVALID);
+		_data[sensorId]->_statusFlag = (TempSensorStatus::DISCONNECTED | TempSensorStatus::INVALID);
 		Serial.printf(_F("NET PROBLEM unsucces request\n"));
 	}
-	if (_currentSensorId < _data.count()-1)
-	{
-		Serial.printf(_F("Read next sensor: %d\n"), _currentSensorId + 1);
-		_currentSensorId++;
-		_httpTimer.initializeMs(100, [=](){this->_getHttpTemp();}).start(false);
-//		_getHttpTemp(_currentSensorId++);
-	}
-	else
-	{
-		Serial.printf(_F("Last sensor! Wait for timer event!\n"));
-		_currentSensorId = 0;
-	}
+
 	return 0;
 }

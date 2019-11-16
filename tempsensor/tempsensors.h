@@ -12,8 +12,9 @@
 
 namespace TempSensorStatus
 {
-	const uint8_t INVALID=1;
-	const uint8_t DISCONNECTED=2;
+	const uint8_t HEALTHY=0u;
+	const uint8_t INVALID=1u;
+	const uint8_t DISCONNECTED=2u;
 }
 
 struct sensorData
@@ -21,7 +22,7 @@ struct sensorData
 	float _temperature = 0;
 	int16_t _calAdd = 0; //Additive calibration coefficient * 100
 	int16_t _calMult = 100; //Multiplicative calibration coefficient * 100
-	uint8_t _statusFlag = 0;
+	uint8_t _statusFlag = (TempSensorStatus::DISCONNECTED | TempSensorStatus::INVALID);
 };
 
 class TempSensors
@@ -70,17 +71,17 @@ private:
 class TempSensorsHttp : public TempSensors
 {
 public:
-	TempSensorsHttp(uint16_t refresh = 4000);
+	TempSensorsHttp(uint16_t refresh = 8000);
 	virtual ~TempSensorsHttp() {};
 	void addSensor();
 	void addSensor(String url);
 
 private:
 	virtual void _temp_start();
-	int _temp_read(HttpConnection& connection, bool successful);
-	void _getHttpTemp();
+	int _temp_read(HttpConnection& connection, bool successful, uint8_t sensorId);
+	void _getHttpTemp(uint8_t sensorId);
 	HttpClient _httpClient;
-	Vector<String> _addresses;
-	uint8_t _currentSensorId;
-	Timer _httpTimer;
+	std::vector<String> _addresses;
+	std::vector<Timer*> _httpTimers;
+	uint8_t _currentSensorId = 0;
 };
