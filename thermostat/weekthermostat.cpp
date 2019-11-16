@@ -294,8 +294,9 @@ void WeekThermostatClass::onScheduleCfg(HttpRequest &request, HttpResponse &resp
 	}
 	else
 	{
-		JsonObjectStream* stream = new JsonObjectStream();
-		JsonObject& root = stream->getRoot();
+		DynamicJsonBuffer jsonBuffer;
+		JsonObject& root = jsonBuffer.createObject();
+
 		for (uint8_t day = 0; day < 7; day++)
 		{
 			JsonArray& jsonDay = root.createNestedArray((String)day);
@@ -307,8 +308,13 @@ void WeekThermostatClass::onScheduleCfg(HttpRequest &request, HttpResponse &resp
 				jsonDay.add(jsonProg);
 			}
 		}
+		String buf;
+
+		root.printTo(buf);
+
 		response.setAllowCrossDomainOrigin("*");
-		response.sendDataStream(stream, MIME_JSON);
+		response.setContentType(MIME_JSON);
+		response.sendString(buf);
 	}
 }
 uint8_t WeekThermostatClass::saveScheduleCfg()
