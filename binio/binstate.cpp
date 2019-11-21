@@ -50,6 +50,12 @@ void BinStateClass::toggle(uint8_t state)
 	}
 }
 
+void BinStateClass::invert(uint8_t state)
+{
+	set(!get());
+	Serial.println(_F("Flip FLIPPED!\n"));
+}
+
 void BinStateClass::onSet(onStateChangeDelegate delegateFunction)
 {
 	_onSet = delegateFunction;
