@@ -20,7 +20,7 @@ public:
 	void setUnitNumber(uint8_t unitNumber) { _unitNumber = unitNumber; };
 	BinStateClass state;
 protected:
-	uint8_t _unitNumber = 0;
+	uint8_t _unitNumber;
 	void _readState();
 	virtual uint8_t _readUnit() = 0;
 

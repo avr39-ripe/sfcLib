@@ -10,9 +10,9 @@
 // BinInClass
 
 BinInClass::BinInClass(uint8_t unitNumber, uint8_t polarity)
+: _unitNumber{unitNumber}, state{polarity}
 {
-	_unitNumber = unitNumber;
-	state.setPolarity(polarity);
+//	state.setPolarity(polarity);
 	state.set(false);
 }
 
@@ -31,6 +31,7 @@ BinInGPIOClass::BinInGPIOClass(uint8_t unitNumber, uint8_t polarity)
 :BinInClass(unitNumber, polarity)
 {
 	pinMode(_unitNumber, INPUT);
+	_readState();
 }
 
 void BinInGPIOClass::setUnitNumber(uint8_t unitNumber)
@@ -46,9 +47,9 @@ uint8_t BinInGPIOClass::_readUnit()
 
 //BinInMCP23S17Class
 BinInMCP23S17Class::BinInMCP23S17Class(MCP &mcp, uint8_t unitNumber, uint8_t polarity)
-:BinInClass(unitNumber, polarity)
+:BinInClass(unitNumber, polarity), _mcp{&mcp}
 {
-	_mcp = &mcp;
+	_readState();
 //	_mcp->pinMode(_unitNumber, INPUT);
 }
 
@@ -65,9 +66,9 @@ uint8_t BinInMCP23S17Class::_readUnit()
 
 //BinInMCP23017Class
 BinInMCP23017Class::BinInMCP23017Class(MCP23017 &mcp, uint8_t unitNumber, uint8_t polarity)
-:BinInClass(unitNumber, polarity)
+:BinInClass(unitNumber, polarity), _mcp{&mcp}
 {
-	_mcp = &mcp;
+	_readState();
 //	_mcp->pinMode(_unitNumber, INPUT);
 }
 
@@ -86,7 +87,7 @@ uint8_t BinInMCP23017Class::_readUnit()
 
 void BinInPollerClass::start()
 {
-	_refreshTimer.initializeMs(_refresh, [=](){this->_pollState();}).start(true);
+	_refreshTimer.initializeMs(_refresh, [this](){this->_pollState();}).start(true);
 }
 
 void BinInPollerClass::stop()
