@@ -60,10 +60,10 @@ protected:
 	void _loadBinConfig();
 	void _setState(uint8_t state) { state ? _state |= BinState::stateBit : _state &= ~(BinState::stateBit);};
 	void _setPrev(uint8_t state) { state ? _state |= BinState::prevStateBit : _state &= ~(BinState::prevStateBit);};
-	uint8_t _state = 0; //BITMASK FIELD!!!
-	uint8_t _uid = 0; // unic id used if persistent enabled as file name uid, must be unic on device
+	uint8_t _state; //BITMASK FIELD!!!
+	uint8_t _uid; // unic id used if persistent enabled as file name uid, must be unic on device
 	void _callOnChangeDelegates();
-	onStateChangeDelegate _onSet = nullptr; // call this with _state as argument
+	onStateChangeDelegate _onSet; // call this with _state as argument
 	std::vector<OnStateChange> _onChange;// = Vector<OnStateChange>(1,1); // call them with _state as argument
 };
 
@@ -90,7 +90,7 @@ private:
 	HttpServer& _webServer;
 	BinStateClass* _outState;
 //	String _name;
-	uint8_t _uid = 0;
+	uint8_t _uid;
 	BinStateClass* _inState = nullptr;
 };
 
@@ -108,6 +108,8 @@ private:
 class BinStateSharedDeferredClass : public BinStateClass
 {
 public:
+	BinStateSharedDeferredClass(uint8_t trueDelay, uint8_t falseDelay) : _consumers{0}, _trueDelay{trueDelay}, _falseDelay{falseDelay}{};
+	BinStateSharedDeferredClass() : BinStateSharedDeferredClass(0,0) {};
 	virtual void set(uint8_t state);
 	void setNow(uint8_t state);
 	void setTrueDelay(uint16_t trueDelay) { _trueDelay = trueDelay; };
@@ -116,9 +118,9 @@ private:
 	void _setDeferredState(uint8_t state) { state ? _state |= BinState::deferredSetBit : _state &= ~(BinState::deferredSetBit);};
 	uint8_t _getDefferedState() { return (_state & BinState::deferredSetBit) != 0; };
 	void _deferredSet();
-	uint8_t _consumers = 0;
-	uint16_t _trueDelay = 0;
-	uint16_t _falseDelay = 0;
+	uint8_t _consumers;
+	uint16_t _trueDelay;
+	uint16_t _falseDelay;
 	uint8_t _nodelay = false;
 	Timer _delayTimer;
 };

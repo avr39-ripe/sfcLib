@@ -8,6 +8,7 @@
 
 
 BinStateClass::BinStateClass(uint8_t polarity, uint8_t toggleActive)
+: _state{0}, _uid{0}, _onSet{nullptr}
 {
 	polarity ? _state |= BinState::polarityBit : _state &= ~(BinState::polarityBit);
 	toggleActive ? _state |= BinState::toggleActiveBit : _state &= ~(BinState::toggleActiveBit);
