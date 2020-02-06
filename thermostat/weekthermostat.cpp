@@ -94,13 +94,13 @@ void WeekThermostatClass::check()
 			else
 				targetTemp = (float)daySchedule[currentProg].targetTemp / 100.0; //in-place convert to float
 
-			if (_manual && (_manualProg != currentProg))
-			{
-				Serial.println(_F("turn Manual off with program change"));
-				_manual = false;
-				_prevManual = false;
-				targetTemp = (float)daySchedule[currentProg].targetTemp / 100.0; //in-place convert to float
-			}
+//			if (_manual && (_manualProg != currentProg))
+//			{
+//				Serial.println(_F("turn Manual off with program change"));
+//				_manual = false;
+//				_prevManual = false;
+//				targetTemp = (float)daySchedule[currentProg].targetTemp / 100.0; //in-place convert to float
+//			}
 		}
 
 //		Serial.print("targetTemp: "); Serial.print(targetTemp); //FLOAT!!!
@@ -143,7 +143,7 @@ uint8_t WeekThermostatClass::loadStateCfg()
 
 		_name = String((const char*)root["name"]);
 		_active = root["active"];
-//		_manual = root["manual"];
+		_manual = root["manual"];
 		_manualTargetTemp = root["manualTargetTemp"];
 		_targetTempDelta = root["targetTempDelta"];
 
@@ -178,7 +178,7 @@ void WeekThermostatClass::onStateCfg(HttpRequest &request, HttpResponse &respons
 			if (root["manual"].success()) // Settings
 			{
 				_manual = root["manual"];
-//				saveStateCfg();
+				saveStateCfg();
 				return;
 			}
 			if (root["manualTargetTemp"].success()) // Settings
@@ -220,7 +220,7 @@ uint8_t WeekThermostatClass::saveStateCfg()
 
 	root["name"] = _name.c_str();
 	root["active"] = _active;
-//	root["manual"] = _manual;
+	root["manual"] = _manual;
 	root["manualTargetTemp"] = _manualTargetTemp;
 	root["targetTempDelta"] = _targetTempDelta;
 
