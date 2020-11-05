@@ -50,7 +50,7 @@ void WeekThermostatClass::check()
 		else
 		{
 			DateTime now = SystemClock.now(eTZ_Local);
-			SchedUnit daySchedule[WeekThermostatConst::maxProg] = _schedule[now.DayofWeek];
+			SchedUnit* daySchedule{_schedule[now.DayofWeek]};
 			uint16_t nowMinutes = now.Hour * 60 + now.Minute;
 //			Serial.printf("Name: %s, DateTime: %s,", _name.c_str(), now.toFullDateTimeString().c_str());
 
