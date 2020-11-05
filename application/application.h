@@ -2,6 +2,7 @@
 #include <SmingCore.h>
 #include <esp_spi_flash.h>
 #include <Network/Http/Websocket/WebsocketResource.h>
+#include <Network/RbootHttpUpdater.h>
 #include <JsonObjectStream.h>
 #include <wsbinconst.h>
 

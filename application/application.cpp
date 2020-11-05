@@ -12,7 +12,7 @@ void ApplicationClass::init()
 	webServerCfg.minHeapSize = 7000;
 	webServer.configure(webServerCfg);
 	int slot = rboot_get_current_rom();
-#ifndef DISABLE_SPIFFS
+#if !DISABLE_SPIFFS
 	if (slot == 0) {
 #ifdef RBOOT_SPIFFS_0
 //		debugf("trying to mount spiffs at %x, length %d", RBOOT_SPIFFS_0, SPIFF_SIZE);
