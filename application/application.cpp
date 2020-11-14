@@ -269,6 +269,11 @@ void ApplicationClass::_httpOnConfiguration(HttpRequest &request, HttpResponse &
 				needSave = true;
 			}
 
+			if (_extraConfigReadJson(root))
+			{
+				needSave = true;
+			}
+
 			if (needSave)
 			{
 				saveConfig();
@@ -329,6 +334,7 @@ void ApplicationClass::_httpOnConfigurationJson(HttpRequest &request, HttpRespon
 	json["loopInterval"] = loopInterval;
 	json["updateURL"] = updateURL;
 
+	_extraConfigWriteJson(json);
 	//response.sendJsonObject(stream);
 	response.sendDataStream(stream, MIME_JSON);
 }

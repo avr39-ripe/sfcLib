@@ -93,6 +93,8 @@ protected:
 	WebsocketResource* _wsResource;
 	void loadConfig();
 	void saveConfig();
-	virtual void _loadAppConfig(file_t file) {}; //override this in child class to load additional config values
-	virtual void _saveAppConfig(file_t file) {}; //override this in child class to save additional config values
+	virtual void _loadAppConfig(file_t& file) {}; //override this in child class to load additional config values
+	virtual void _saveAppConfig(file_t& file) {}; //override this in child class to save additional config values
+	virtual bool _extraConfigReadJson(JsonObject& json) { return false; }; // ovveride in child to read extra config params from posted json
+	virtual void _extraConfigWriteJson(JsonObject& json) {}; // ovveride in child to write extra config params to json response
 };
