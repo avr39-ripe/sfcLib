@@ -435,7 +435,7 @@ void ApplicationClass::OtaUpdate()
 	}
 #endif
 
-#ifndef DISABLE_SPIFFS
+#if !DISABLE_SPIFFS
 	// use user supplied values (defaults for 4mb flash in makefile)
 	if(slot == 0) {
 		otaUpdater->addItem(RBOOT_SPIFFS_0, updateURL + "spiff_rom.bin");
