@@ -167,14 +167,17 @@ int TempSensorHttp::_temp_read(HttpConnection& connection, bool successful)
 	{
 //	Serial.println("tr-succes");
 		_connectionStatus = TempsensorConnectionStatus::CONNECTED;
-		String response = connection.getResponse()->getBody();
+		auto response = connection.getResponse();
 		if (response.length() > 0)
 		{
 //		Serial.println("res>0");
-			StaticJsonBuffer<200> jsonBuffer;
-			JsonObject& root = jsonBuffer.parseObject(response);
+//			StaticJsonBuffer<200> jsonBuffer;
+//			JsonObject& root = jsonBuffer.parseObject(response);
+
+			StaticJsonDocument<200> root;
+			DeserializationError error{deserializeJson(root, response.getBodyStream())};
 //			root.prettyPrintTo(Serial); //Uncomment it for debuging
-			if (root["temperature"].success())
+			if (root.containsKey("temperature"))
 			{
 				_temperature = root["temperature"];
 				_healthy = root["healthy"];

@@ -479,10 +479,10 @@ void ApplicationClass::_httpOnUpdate(HttpRequest &request, HttpResponse &respons
 {
 	if (request.method == HTTP_POST)
 		{
-			String body = request.getBody();
+			//String body = request.getBody();
 			debug_d("Update POST request\n");
 
-			if (body == NULL)
+			if (request.getBodyStream() == nullptr)
 			{
 				debugf("Empty Request Body!\n");
 				return;
@@ -495,8 +495,11 @@ void ApplicationClass::_httpOnUpdate(HttpRequest &request, HttpResponse &respons
 //				JsonObject& root = jsonBuffer.parseObject(body);
 //
 				DynamicJsonDocument root{1024};
-				DeserializationError error{deserializeJson(root, body)};
-				if (error){return;}
+				if(!Json::deserialize(root, request.getBodyStream()))
+				{
+						debug_w("Invalid JSON to un-serialize");
+						return;
+				}
 	//Uncomment next line for extra debuginfo
 				Json::serialize(root, Serial, Json::Pretty);
 
