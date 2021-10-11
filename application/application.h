@@ -70,7 +70,7 @@ protected:
 	void _httpOnConfiguration(HttpRequest &request, HttpResponse &response);
 	void _httpOnConfigurationJson(HttpRequest &request, HttpResponse &response);
 	void _httpOnUpdate(HttpRequest &request, HttpResponse &response);
-	void _handleWifiConfig(JsonObject& root);
+	void _handleWifiConfig(const JsonDocument& root);
 	void wsConnected(WebsocketConnection& socket);
 	void wsDisconnected(WebsocketConnection& socket);
 	void wsMessageReceived(WebsocketConnection& socket, const String& message);
@@ -95,6 +95,6 @@ protected:
 	void saveConfig();
 	virtual void _loadAppConfig(file_t& file) {}; //override this in child class to load additional config values
 	virtual void _saveAppConfig(file_t& file) {}; //override this in child class to save additional config values
-	virtual bool _extraConfigReadJson(JsonObject& json) { return false; }; // ovveride in child to read extra config params from posted json
+	virtual bool _extraConfigReadJson(const JsonDocument& json) { return false; }; // ovveride in child to read extra config params from posted json
 	virtual void _extraConfigWriteJson(JsonObject& json) {}; // ovveride in child to write extra config params to json response
 };

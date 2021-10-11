@@ -245,8 +245,12 @@ void ApplicationClass::_httpOnConfiguration(HttpRequest &request, HttpResponse &
 //Uncomment next line for extra debuginfo
 //			Serial.printf(body);
 			uint8_t needSave = false;
-			DynamicJsonBuffer jsonBuffer;
-			JsonObject& root = jsonBuffer.parseObject(body);
+//			DynamicJsonBuffer jsonBuffer;
+//			JsonObject& root = jsonBuffer.parseObject(body);
+
+			DynamicJsonDocument root{1024};
+			DeserializationError error {deserializeJson(root, body)};
+			if (error) {return;}
 //Uncomment next line for extra debuginfo
 //			root.prettyPrintTo(Serial);
 
@@ -255,7 +259,7 @@ void ApplicationClass::_httpOnConfiguration(HttpRequest &request, HttpResponse &
 
 			//Application config processing
 
-			if (root["loopInterval"].success()) // There is loopInterval parameter in json
+			if (root.containsKey("loopInterval")) // There is loopInterval parameter in json
 			{
 				loopInterval = root["loopInterval"];
 				start(); // restart main application loop with new loopInterval setting
@@ -263,9 +267,9 @@ void ApplicationClass::_httpOnConfiguration(HttpRequest &request, HttpResponse &
 			}
 
 
-			if (root["updateURL"].success()) // There is loopInterval parameter in json
+			if (root.containsKey("updateURL")) // There is loopInterval parameter in json
 			{
-				updateURL = String((const char *)root["updateURL"]);
+				updateURL = root["updateURL"].as<const char*>();
 				needSave = true;
 			}
 
@@ -287,11 +291,15 @@ void ApplicationClass::_httpOnConfiguration(HttpRequest &request, HttpResponse &
 	}
 }
 
-void ApplicationClass::_handleWifiConfig(JsonObject& root)
+void ApplicationClass::_handleWifiConfig(const JsonDocument& root)
 {
-	String StaSSID = root["StaSSID"].success() ? String((const char *)root["StaSSID"]) : "";
-	String StaPassword = root["StaPassword"].success() ? String((const char *)root["StaPassword"]) : "";
-	uint8_t StaEnable = root["StaEnable"].success() ? root["StaEnable"] : 255;
+//	String StaSSID = root["StaSSID"].success() ? String((const char *)root["StaSSID"]) : "";
+//	String StaPassword = root["StaPassword"].success() ? String((const char *)root["StaPassword"]) : "";
+//	uint8_t StaEnable = root["StaEnable"].success() ? root["StaEnable"] : 255;
+
+	String StaSSID = root["StaSSID"];
+	String StaPassword = root["StaPassword"];
+	uint8_t StaEnable = root["StaEnable"] | 255;
 
 	if (StaEnable != 255) // WiFi Settings
 	{
@@ -324,7 +332,7 @@ void ApplicationClass::_handleWifiConfig(JsonObject& root)
 void ApplicationClass::_httpOnConfigurationJson(HttpRequest &request, HttpResponse &response)
 {
 	JsonObjectStream* stream = new JsonObjectStream();
-	JsonObject& json = stream->getRoot();
+	JsonObject json = stream->getRoot();
 
 	//Mandatory part of WIFI Station SSID & Station mode enable config
 	json["StaSSID"] = WifiStation.getSSID();
@@ -483,19 +491,23 @@ void ApplicationClass::_httpOnUpdate(HttpRequest &request, HttpResponse &respons
 			{
 	//Uncomment next line for extra debuginfo
 	//			Serial.printf(request.getBody());
-				DynamicJsonBuffer jsonBuffer;
-				JsonObject& root = jsonBuffer.parseObject(body);
+//				DynamicJsonBuffer jsonBuffer;
+//				JsonObject& root = jsonBuffer.parseObject(body);
+//
+				DynamicJsonDocument root{1024};
+				DeserializationError error{deserializeJson(root, body)};
+				if (error){return;}
 	//Uncomment next line for extra debuginfo
-				root.prettyPrintTo(Serial);
+				Json::serialize(root, Serial, Json::Pretty);
 
 
 				//Application config processing
 
-				if (root["update"].success()) // There is loopInterval parameter in json
+				if (root.containsKey("update")) // There is loopInterval parameter in json
 				{
 					OtaUpdate();
 				}
-				if (root["switch"].success()) // There is loopInterval parameter in json
+				if (root.containsKey("switch")) // There is loopInterval parameter in json
 				{
 					Switch();
 				}

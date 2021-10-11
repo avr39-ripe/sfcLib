@@ -39,7 +39,7 @@ void TempSensors::onHttpGet(HttpRequest &request, HttpResponse &response)
 	if (request.method == HTTP_GET)
 	{
 		JsonObjectStream* stream = new JsonObjectStream();
-		JsonObject& root = stream->getRoot();
+		JsonObject root = stream->getRoot();
 
 //		DynamicJsonBuffer jsonBuffer;
 //		String buf;
