@@ -167,7 +167,7 @@ int TempSensorHttp::_temp_read(HttpConnection& connection, bool successful)
 	{
 //	Serial.println("tr-succes");
 		_connectionStatus = TempsensorConnectionStatus::CONNECTED;
-		auto response = connection.getResponse();
+		auto response {connection.getResponse()->getBody()};
 		if (response.length() > 0)
 		{
 //		Serial.println("res>0");
@@ -175,7 +175,11 @@ int TempSensorHttp::_temp_read(HttpConnection& connection, bool successful)
 //			JsonObject& root = jsonBuffer.parseObject(response);
 
 			StaticJsonDocument<200> root;
-			DeserializationError error{deserializeJson(root, response.getBodyStream())};
+//			DeserializationError error{deserializeJson(root, response)};
+			if(!Json::deserialize(root, response))
+			{
+					debug_w("Invalid JSON to un-serialize");
+			}
 //			root.prettyPrintTo(Serial); //Uncomment it for debuging
 			if (root.containsKey("temperature"))
 			{

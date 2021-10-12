@@ -49,7 +49,7 @@ void TempSensors::onHttpGet(HttpRequest &request, HttpResponse &response)
 		{
 			for (uint8_t id=0; id < _data.count(); id++)
 			{
-				JsonObject& data = root.createNestedObject((String)id);
+				JsonObject data = root.createNestedObject((String)id);
 				data["temperature"] = getTemp(id);
 				data["statusFlag"] = _data[id]->_statusFlag;
 			}
@@ -87,19 +87,22 @@ void TempSensors::onHttpConfig(HttpRequest &request, HttpResponse &response)
 			else
 			{
 				uint8_t needSave = false;
-				DynamicJsonBuffer jsonBuffer;
-				JsonObject& root = jsonBuffer.parseObject(body);
+				StaticJsonDocument<384> root;
+				if(!Json::deserialize(root, body))
+				{
+						debug_w("Invalid JSON to un-serialize");
+				}
 //				root.prettyPrintTo(Serial); //Uncomment it for debuging
 				String queryParam = request.getQueryParameter("sensor", "-1");
 				if (queryParam != "-1")
 				{
 					uint8_t id = request.getQueryParameter("sensor").toInt();
-					if (root["calAdd"].success()) // Settings
+					if (root.containsKey("calAdd")) // Settings
 					{
 						_data[id]->_calAdd = root["calAdd"];
 						needSave = true;
 					}
-					if (root["calMult"].success()) // Settings
+					if (root.containsKey("calMult")) // Settings
 					{
 						_data[id]->_calMult = root["calMult"];
 						needSave = true;
@@ -114,13 +117,13 @@ void TempSensors::onHttpConfig(HttpRequest &request, HttpResponse &response)
 		else
 		{
 			JsonObjectStream* stream = new JsonObjectStream();
-			JsonObject& root = stream->getRoot();
+			JsonObject root = stream->getRoot();
 			String queryParam = request.getQueryParameter("sensor", "-1");
 			if (queryParam == "-1")
 			{
 				for (uint8_t id=0; id < _data.count(); id++)
 				{
-					JsonObject& data = root.createNestedObject((String)id);
+					JsonObject data = root.createNestedObject((String)id);
 					data["calAdd"] = _data[id]->_calAdd;
 					data["calMult"] = _data[id]->_calMult;
 				}
@@ -377,10 +380,15 @@ int TempSensorsHttp::_temp_read(HttpConnection& connection, bool successful, uin
 		String response = connection.getResponse()->getBody();
 		if (response.length() > 0)
 		{
-			StaticJsonBuffer<200> jsonBuffer;
-			JsonObject& root = jsonBuffer.parseObject(response);
+			StaticJsonDocument<384> root;
+
+			if(!Json::deserialize(root, response))
+			{
+					debug_w("Invalid JSON to un-serialize");
+			}
+
 //			root.prettyPrintTo(Serial); //Uncomment it for debuging
-			if (root["temperature"].success())
+			if (root.containsKey("temperature"))
 			{
 				_data[sensorId]->_temperature = root["temperature"];
 				_data[sensorId]->_statusFlag = root["statusFlag"];

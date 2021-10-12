@@ -494,7 +494,7 @@ void ApplicationClass::_httpOnUpdate(HttpRequest &request, HttpResponse &respons
 //				DynamicJsonBuffer jsonBuffer;
 //				JsonObject& root = jsonBuffer.parseObject(body);
 //
-				DynamicJsonDocument root{1024};
+				StaticJsonDocument<384> root;
 				if(!Json::deserialize(root, request.getBodyStream()))
 				{
 						debug_w("Invalid JSON to un-serialize");

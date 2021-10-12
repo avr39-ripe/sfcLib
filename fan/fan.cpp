@@ -143,36 +143,43 @@ void FanClass::onHttpConfig(HttpRequest &request, HttpResponse &response)
 			else
 			{
 				uint8_t needSave = false;
-				DynamicJsonBuffer jsonBuffer;
-				JsonObject& root = jsonBuffer.parseObject(body);
+//				DynamicJsonBuffer jsonBuffer;
+//				JsonObject& root = jsonBuffer.parseObject(body);
+
+				StaticJsonDocument<200> root;
+
+				if(!Json::deserialize(root, body))
+				{
+						debug_w("Invalid JSON to un-serialize");
+				}
 //				root.prettyPrintTo(Serial); //Uncomment it for debuging
 
-				if (root["startDuration"].success())
+				if (root.containsKey("startDuration"))
 				{
 					_startDuration = root["startDuration"];
 					needSave = true;
 				}
-				if (root["stopDuration"].success())
+				if (root.containsKey("stopDuration"))
 				{
 					_stopDuration = root["stopDuration"];
 					needSave = true;
 				}
-				if (root["periodicInterval"].success())
+				if (root.containsKey("periodicInterval"))
 				{
 					_periodicInterval = root["periodicInterval"];
 					needSave = true;
 				}
-				if (root["periodicDuration"].success())
+				if (root.containsKey("periodicDuration"))
 				{
 					_periodicDuration = root["periodicDuration"];
 					needSave = true;
 				}
-				if (root["periodicTempDelta"].success())
+				if (root.containsKey("periodicTempDelta"))
 				{
 					_periodicTempDelta = root["periodicTempDelta"];
 					needSave = true;
 				}
-				if (root["checkerInterval"].success())
+				if (root.containsKey("checkerInterval"))
 				{
 					_checkerInterval = root["checkerInterval"];
 					needSave = true;
@@ -186,7 +193,7 @@ void FanClass::onHttpConfig(HttpRequest &request, HttpResponse &response)
 		else
 		{
 			JsonObjectStream* stream = new JsonObjectStream();
-			JsonObject& json = stream->getRoot();
+			JsonObject json = stream->getRoot();
 
 			json["startDuration"] = _startDuration;
 			json["stopDuration"] = _stopDuration;

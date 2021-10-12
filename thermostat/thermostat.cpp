@@ -144,17 +144,22 @@ void ThermostatClass::onHttpConfig(HttpRequest &request, HttpResponse &response)
 			else
 			{
 				uint8_t needSave = false;
-				DynamicJsonBuffer jsonBuffer;
-				JsonObject& root = jsonBuffer.parseObject(body);
+				StaticJsonDocument<384> root;
+	//			DeserializationError error{deserializeJson(root, response)};
+				if(!Json::deserialize(root, body))
+				{
+						debug_w("Invalid JSON to un-serialize");
+				}
+
 //				root.prettyPrintTo(Serial); //Uncomment it for debuging
 
-				if (root["targetTemp"].success()) // Settings
+				if (root.containsKey("targetTemp")) // Settings
 				{
 //					_targetTemp = ((float)(root["targetTemp"]) * 100);
 					_targetTemp = root["targetTemp"];
 					needSave = true;
 				}
-				if (root["targetTempDelta"].success()) // Settings
+				if (root.containsKey("targetTempDelta")) // Settings
 				{
 //					_targetTempDelta = ((float)(root["targetTempDelta"]) * 100);
 					_targetTempDelta = root["targetTempDelta"];
@@ -169,7 +174,7 @@ void ThermostatClass::onHttpConfig(HttpRequest &request, HttpResponse &response)
 		else
 		{
 			JsonObjectStream* stream = new JsonObjectStream();
-			JsonObject& json = stream->getRoot();
+			JsonObject json = stream->getRoot();
 
 //			json["name"] = _name;
 //			json["active"] = _active;

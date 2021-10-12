@@ -132,14 +132,20 @@ void WeekThermostatClass::stop()
 
 uint8_t WeekThermostatClass::loadStateCfg()
 {
-	StaticJsonBuffer<stateJsonBufSize> jsonBuffer;
+	//StaticJsonBuffer<stateJsonBufSize> jsonBuffer;
+	StaticJsonDocument<stateJsonBufSize> root;
 
 	if (fileExist(".state" + _name))
 	{
 		int size = fileGetSize(".state" + _name);
 		char* jsonString = new char[size + 1];
 		fileGetContent(".state" + _name, jsonString, size + 1);
-		JsonObject& root = jsonBuffer.parseObject(jsonString);
+		//JsonObject& root = jsonBuffer.parseObject(jsonString);
+
+		if(!Json::deserialize(root, jsonString))
+		{
+				debug_w("Invalid JSON to un-serialize");
+		}
 
 		_name = String((const char*)root["name"]);
 		_active = root["active"];
@@ -165,29 +171,35 @@ void WeekThermostatClass::onStateCfg(HttpRequest &request, HttpResponse &respons
 		}
 		else
 		{
-			StaticJsonBuffer<stateJsonBufSize> jsonBuffer;
-			JsonObject& root = jsonBuffer.parseObject(body);
+			//StaticJsonBuffer<stateJsonBufSize> jsonBuffer;
+			StaticJsonDocument<stateJsonBufSize> root;
+
+			//JsonObject& root = jsonBuffer.parseObject(body);
+			if(!Json::deserialize(root, body))
+			{
+					debug_w("Invalid JSON to un-serialize");
+			}
 //			root.prettyPrintTo(Serial); //Uncomment it for debuging
 
-			if (root["active"].success()) // Settings
+			if (root.containsKey("active")) // Settings
 			{
 				_active = root["active"];
 				saveStateCfg();
 				return;
 			}
-			if (root["manual"].success()) // Settings
+			if (root.containsKey("manual")) // Settings
 			{
 				_manual = root["manual"];
 //				saveStateCfg();
 				return;
 			}
-			if (root["manualTargetTemp"].success()) // Settings
+			if (root.containsKey("manualTargetTemp")) // Settings
 			{
 				_manualTargetTemp = ((float)(root["manualTargetTemp"]) * 100);
 				saveStateCfg();
 				return;
 			}
-			if (root["targetTempDelta"].success()) // Settings
+			if (root.containsKey("targetTempDelta")) // Settings
 			{
 				_targetTempDelta = ((float)(root["targetTempDelta"]) * 100);
 				saveStateCfg();
@@ -198,7 +210,7 @@ void WeekThermostatClass::onStateCfg(HttpRequest &request, HttpResponse &respons
 	else
 	{
 		JsonObjectStream* stream = new JsonObjectStream();
-		JsonObject& json = stream->getRoot();
+		JsonObject json = stream->getRoot();
 
 		json["name"] = _name;
 		json["active"] = _active;
@@ -215,8 +227,10 @@ void WeekThermostatClass::onStateCfg(HttpRequest &request, HttpResponse &respons
 
 uint8_t WeekThermostatClass::saveStateCfg()
 {
-	StaticJsonBuffer<stateJsonBufSize> jsonBuffer;
-	JsonObject& root = jsonBuffer.createObject();
+	//StaticJsonBuffer<stateJsonBufSize> jsonBuffer;
+	StaticJsonDocument<stateJsonBufSize> doc;
+	JsonObject root = doc.to<JsonObject>();
+	//JsonObject& root = jsonBuffer.createObject();
 
 	root["name"] = _name.c_str();
 	root["active"] = _active;
@@ -227,7 +241,9 @@ uint8_t WeekThermostatClass::saveStateCfg()
 //	root.prettyPrintTo(Serial);
 
 	char buf[stateFileBufSize];
-	root.printTo(buf, sizeof(buf));
+	//root.printTo(buf, sizeof(buf));
+
+	serializeJson(doc, buf, sizeof(buf));
 	fileSetContent(".state" + _name, buf);
 
 	return 0;
@@ -235,14 +251,19 @@ uint8_t WeekThermostatClass::saveStateCfg()
 
 uint8_t WeekThermostatClass::loadScheduleCfg()
 {
-	StaticJsonBuffer<scheduleJsonBufSize> jsonBuffer;
-
+	//StaticJsonBuffer<scheduleJsonBufSize> jsonBuffer;
+	StaticJsonDocument<scheduleJsonBufSize> root;
 	if (fileExist(".sched" + _name))
 	{
 		int size = fileGetSize(".sched" + _name);
 		char* jsonString = new char[size + 1];
 		fileGetContent(".sched" + _name, jsonString, size + 1);
-		JsonObject& root = jsonBuffer.parseObject(jsonString);
+		//JsonObject& root = jsonBuffer.parseObject(jsonString);
+
+		if(!Json::deserialize(root, jsonString))
+		{
+				debug_w("Invalid JSON to un-serialize");
+		}
 
 		for (uint8_t day = 0; day < 7; day++)
 			{
@@ -261,7 +282,8 @@ uint8_t WeekThermostatClass::loadScheduleCfg()
 
 void WeekThermostatClass::onScheduleCfg(HttpRequest &request, HttpResponse &response)
 {
-	StaticJsonBuffer<scheduleJsonBufSize> jsonBuffer;
+	//StaticJsonBuffer<scheduleJsonBufSize> jsonBuffer;
+	StaticJsonDocument<scheduleJsonBufSize> root;
 	if (request.method == HTTP_POST)
 	{
 		String body = request.getBody();
@@ -273,12 +295,16 @@ void WeekThermostatClass::onScheduleCfg(HttpRequest &request, HttpResponse &resp
 		else
 		{
 
-			JsonObject& root = jsonBuffer.parseObject(body);
+			//JsonObject& root = jsonBuffer.parseObject(body);
+			if(!Json::deserialize(root, body))
+			{
+					debug_w("Invalid JSON to un-serialize");
+			}
 //			root.prettyPrintTo(Serial); //Uncomment it for debuging
 
 			for (uint8_t day = 0; day < 7; day++)
 			{
-				if (root[(String)day].success())
+				if (root.containsKey((String)day))
 				{
 				  for (uint8_t prog = 0; prog < WeekThermostatConst::maxProg; prog++)
 				  {
@@ -294,15 +320,18 @@ void WeekThermostatClass::onScheduleCfg(HttpRequest &request, HttpResponse &resp
 	}
 	else
 	{
-		DynamicJsonBuffer jsonBuffer;
-		JsonObject& root = jsonBuffer.createObject();
+//		DynamicJsonBuffer jsonBuffer;
+//		JsonObject& root = jsonBuffer.createObject();
+
+		StaticJsonDocument<scheduleJsonBufSize> doc;
+		JsonObject root = doc.to<JsonObject>();
 
 		for (uint8_t day = 0; day < 7; day++)
 		{
-			JsonArray& jsonDay = root.createNestedArray((String)day);
+			JsonArray jsonDay = root.createNestedArray((String)day);
 			for (uint8_t prog = 0; prog < WeekThermostatConst::maxProg; prog++)
 			{
-				JsonObject& jsonProg = jsonBuffer.createObject();
+				JsonObject jsonProg = doc.createNestedObject();
 				jsonProg["s"] = _schedule[day][prog].start;
 				jsonProg["tt"] = _schedule[day][prog].targetTemp;
 				jsonDay.add(jsonProg);
@@ -310,7 +339,8 @@ void WeekThermostatClass::onScheduleCfg(HttpRequest &request, HttpResponse &resp
 		}
 		String buf;
 
-		root.printTo(buf);
+		//root.printTo(buf);
+		serializeJson(doc, buf);
 
 		response.setAllowCrossDomainOrigin("*");
 		response.setContentType(MIME_JSON);
@@ -319,23 +349,30 @@ void WeekThermostatClass::onScheduleCfg(HttpRequest &request, HttpResponse &resp
 }
 uint8_t WeekThermostatClass::saveScheduleCfg()
 {
-	StaticJsonBuffer<scheduleJsonBufSize> jsonBuffer;
-	JsonObject& root = jsonBuffer.createObject();
+//	StaticJsonBuffer<scheduleJsonBufSize> jsonBuffer;
+//	JsonObject& root = jsonBuffer.createObject();
+//
+	StaticJsonDocument<scheduleJsonBufSize> doc;
+	JsonObject root = doc.to<JsonObject>();
+
 	for (uint8_t day = 0; day < 7; day++)
 	{
-		JsonArray& jsonDay = root.createNestedArray((String)day);
+		JsonArray jsonDay = root.createNestedArray((String)day);
 		for (uint8_t prog = 0; prog < WeekThermostatConst::maxProg; prog++)
 		{
-			JsonObject& jsonProg = jsonBuffer.createObject();
+			JsonObject jsonProg = doc.createNestedObject();
 			jsonProg["s"] = _schedule[day][prog].start;
 			jsonProg["tt"] = _schedule[day][prog].targetTemp;
 			jsonDay.add(jsonProg);
 		}
 	}
-	root.prettyPrintTo(Serial);
+	//root.prettyPrintTo(Serial);
+	serializeJsonPretty(doc,Serial);
 
 	char buf[scheduleFileBufSize];
-	root.printTo(buf, sizeof(buf));
+	//root.printTo(buf, sizeof(buf));
+	serializeJson(doc, buf, sizeof(buf));
+
 	fileSetContent(".sched" + _name, buf);
 	return 0;
 }
