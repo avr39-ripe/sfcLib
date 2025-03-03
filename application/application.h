@@ -1,5 +1,6 @@
 #pragma once
 #include <SmingCore.h>
+#include <Storage/SpiFlash.h>
 #include <esp_spi_flash.h>
 #include <Network/Http/Websocket/WebsocketResource.h>
 #include <Network/RbootHttpUpdater.h>
@@ -91,10 +92,13 @@ protected:
 	//Binary configuration file name
 	String _fileName = APP_CONFIG_FILE;
 	WebsocketResource* _wsResource;
+	Storage::Partition _spiffsPartition;
+
 	void loadConfig();
 	void saveConfig();
 	virtual void _loadAppConfig(file_t& file) {}; //override this in child class to load additional config values
 	virtual void _saveAppConfig(file_t& file) {}; //override this in child class to save additional config values
 	virtual bool _extraConfigReadJson(JsonObject& json) { return false; }; // ovveride in child to read extra config params from posted json
 	virtual void _extraConfigWriteJson(JsonObject& json) {}; // ovveride in child to write extra config params to json response
+	Storage::Partition findSpiffsPartition(uint8_t slot); // Find SPIFFS partition by slot
 };

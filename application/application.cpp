@@ -12,28 +12,13 @@ void ApplicationClass::init()
 	webServerCfg.minHeapSize = 7000;
 	webServer.configure(webServerCfg);
 	int slot = rboot_get_current_rom();
-#if !DISABLE_SPIFFS
-	if (slot == 0) {
-#ifdef RBOOT_SPIFFS_0
-//		debugf("trying to mount spiffs at %x, length %d", RBOOT_SPIFFS_0, SPIFF_SIZE);
-		spiffs_mount_manual(RBOOT_SPIFFS_0, SPIFF_SIZE);
-#else
-//		debugf("trying to mount spiffs at %x, length %d", 0x100000, SPIFF_SIZE);
-		spiffs_mount_manual(0x100000, SPIFF_SIZE);
-#endif
-	} else {
-#ifdef RBOOT_SPIFFS_1
-//		debugf("trying to mount spiffs at %x, length %d", RBOOT_SPIFFS_1, SPIFF_SIZE);
-		spiffs_mount_manual(RBOOT_SPIFFS_1, SPIFF_SIZE);
-#else
-//		debugf("trying to mount spiffs at %x, length %d", 0x300000, SPIFF_SIZE);
-		spiffs_mount_manual(0x300000, SPIFF_SIZE);
-#endif
+	_spiffsPartition = findSpiffsPartition(slot);
+
+	if(_spiffsPartition) {
+		debugf("trying to mount '%s' at 0x%08x, length %d", _spiffsPartition.name().c_str(), _spiffsPartition.address(),
+			   _spiffsPartition.size());
+		spiffs_mount(_spiffsPartition);
 	}
-#else
-//	debugf("spiffs disabled");
-#endif
-//	spiffs_mount(); // Mount file system, in order to work with files
 
 	_initialWifiConfig();
 
@@ -427,28 +412,20 @@ void ApplicationClass::OtaUpdate()
 	// flash rom to position indicated in the rBoot config rom table
 	otaUpdater->addItem(bootconf.roms[slot], updateURL + "rom0.bin");
 #else
-	// flash appropriate rom
-	if(slot == 0) {
-		otaUpdater->addItem(bootconf.roms[slot], ROM_0_URL);
-	} else {
-		otaUpdater->addItem(bootconf.roms[slot], ROM_1_URL);
-	}
+
 #endif
 
-#if !DISABLE_SPIFFS
-	// use user supplied values (defaults for 4mb flash in makefile)
-	if(slot == 0) {
-		otaUpdater->addItem(RBOOT_SPIFFS_0, updateURL + "spiff_rom.bin");
-	} else {
-		otaUpdater->addItem(RBOOT_SPIFFS_1, updateURL + "spiff_rom.bin");
+	auto part = findSpiffsPartition(slot);
+	if(part) {
+		// use user supplied values (defaults for 4mb flash in hardware config)
+		otaUpdater->addItem(part.address(), updateURL + "spiff_rom.bin", part.size());
 	}
-#endif
 
 	// request switch and reboot on success
 	//otaUpdater->switchToRom(slot);
 	// and/or set a callback (called on failure or success without switching requested)
 	otaUpdater->setCallback([this](RbootHttpUpdater& client, bool result){this->OtaUpdate_CallBack(client,result);});
-
+	
 	// start update
 	otaUpdater->start();
 }
@@ -595,4 +572,15 @@ void ApplicationClass::wsAddBinSetter(uint8_t sysId, WebsocketBinaryDelegate wsB
 void ApplicationClass::wsAddBinGetter(uint8_t sysId, WebsocketBinaryDelegate wsBinGetterDelegate)
 {
 	_wsBinGetters[sysId] = wsBinGetterDelegate;
+}
+
+Storage::Partition ApplicationClass::findSpiffsPartition(uint8_t slot)
+{
+	String name = F("spiffs");
+	name += slot;
+	auto part = Storage::findPartition(name);
+	if(!part) {
+		debug_w("Partition '%s' not found", name.c_str());
+	}
+	return part;
 }
