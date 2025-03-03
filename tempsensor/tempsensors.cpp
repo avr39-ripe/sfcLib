@@ -142,7 +142,7 @@ void TempSensors::onHttpConfig(HttpRequest &request, HttpResponse &response)
 void TempSensors::_saveBinConfig()
 {
 	Serial.printf(_F("Try to save bin cfg..\n"));
-	file_t file = fileOpen("tmpsensors", eFO_CreateIfNotExist | eFO_WriteOnly);
+	file_t file = fileOpen("tmpsensors", File::Create | File::WriteOnly);
 	for (uint8_t id=0; id < _data.count(); id++)
 	{
 		fileWrite(file, &_data[id]->_calAdd, sizeof(_data[id]->_calAdd));
@@ -157,8 +157,8 @@ void TempSensors::_loadBinConfig()
 	if (fileExist("tmpsensors"))
 	{
 		Serial.printf(_F("Will load bin cfg..\n"));
-		file_t file = fileOpen("tmpsensors", eFO_ReadOnly);
-		fileSeek(file, 0, eSO_FileStart);
+		file_t file = fileOpen("tmpsensors", File::ReadOnly);
+		fileSeek(file, 0, SeekOrigin::Start);
 		for (uint8_t id=0; id < _data.count(); id++)
 		{
 			fileRead(file, &_data[id]->_calAdd, sizeof(_data[id]->_calAdd));

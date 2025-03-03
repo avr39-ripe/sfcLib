@@ -332,8 +332,8 @@ void ApplicationClass::loadConfig()
 	if (fileExist(_fileName))
 	{
 		Serial.printf(_F("Will load ApplicationClass bin cfg..\n"));
-		file_t file = fileOpen(_fileName, eFO_ReadOnly);
-		fileSeek(file, 0, eSO_FileStart);
+		file_t file = fileOpen(_fileName, File::ReadOnly);
+		fileSeek(file, 0, SeekOrigin::Start);
 		fileRead(file, &strSize, sizeof(strSize));
 		uint8_t* updateURLBuffer = new uint8_t[strSize+1];
 		fileRead(file, updateURLBuffer, strSize);
@@ -355,7 +355,7 @@ void ApplicationClass::saveConfig()
 	uint16_t strSize = updateURL.length();
 
 	Serial.printf(_F("Try to save ApplicationClass bin cfg..\n"));
-	file_t file = fileOpen(_fileName, eFO_CreateNewAlways | eFO_WriteOnly);
+	file_t file = fileOpen(_fileName, File::CreateNewAlways | File::WriteOnly);
 	fileWrite(file, &strSize, sizeof(strSize));
 	fileWrite(file, updateURL.c_str(), strSize);
 	fileWrite(file, &loopInterval, sizeof(loopInterval));

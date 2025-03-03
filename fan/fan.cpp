@@ -203,7 +203,7 @@ void FanClass::onHttpConfig(HttpRequest &request, HttpResponse &response)
 void FanClass::_saveBinConfig()
 {
 	Serial.printf(_F("Try to save bin cfg..\n"));
-	file_t file = fileOpen("fan.config", eFO_CreateIfNotExist | eFO_WriteOnly);
+	file_t file = fileOpen("fan.config", File::Create | File::WriteOnly);
 	fileWrite(file, &_startDuration, sizeof(_startDuration));
 	fileWrite(file, &_stopDuration, sizeof(_stopDuration));
 	fileWrite(file, &_periodicInterval, sizeof(_periodicInterval));
@@ -219,8 +219,8 @@ void FanClass::_loadBinConfig()
 	if (fileExist("fan.config"))
 	{
 		Serial.printf(_F("Will load bin cfg..\n"));
-		file_t file = fileOpen("fan.config", eFO_ReadOnly);
-		fileSeek(file, 0, eSO_FileStart);
+		file_t file = fileOpen("fan.config", File::ReadOnly);
+		fileSeek(file, 0, SeekOrigin::Start);
 		fileRead(file, &_startDuration, sizeof(_startDuration));
 		fileRead(file, &_stopDuration, sizeof(_stopDuration));
 		fileRead(file, &_periodicInterval, sizeof(_periodicInterval));

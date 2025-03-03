@@ -79,7 +79,7 @@ void BinStateClass::_callOnChangeDelegates()
 void BinStateClass::_saveBinConfig()
 {
 	Serial.printf(_F("Try to save bin cfg..\n"));
-	file_t file = fileOpen(String(".state" + _uid), eFO_CreateIfNotExist | eFO_WriteOnly);
+	file_t file = fileOpen(String(".state" + _uid), File::Create | File::WriteOnly);
 	fileWrite(file, &_state, sizeof(_state));
 	fileClose(file);
 }
@@ -91,8 +91,8 @@ void BinStateClass::_loadBinConfig()
 	if (fileExist(String(".state" + _uid)))
 	{
 		Serial.printf(_F("Will load bin cfg..\n"));
-		file_t file = fileOpen(String(".state" + _uid), eFO_ReadOnly);
-		fileSeek(file, 0, eSO_FileStart);
+		file_t file = fileOpen(String(".state" + _uid), File::ReadOnly);
+		fileSeek(file, 0, SeekOrigin::Start);
 		fileRead(file, &tempState, sizeof(tempState));
 		fileClose(file);
 

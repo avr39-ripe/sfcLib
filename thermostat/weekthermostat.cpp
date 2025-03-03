@@ -342,15 +342,15 @@ uint8_t WeekThermostatClass::saveScheduleCfg()
 
 void WeekThermostatClass::saveScheduleBinCfg()
 {
-	file_t file = fileOpen(".schedule" + _name, eFO_CreateIfNotExist | eFO_WriteOnly);
+	file_t file = fileOpen(".schedule" + _name, File::Create | File::WriteOnly);
 	fileWrite(file, _schedule, sizeof(SchedUnit)*6*7);
 	fileClose(file);
 }
 
 void WeekThermostatClass::loadScheduleBinCfg()
 {
-	file_t file = fileOpen(".schedule" + _name, eFO_ReadOnly);
-	fileSeek(file, 0, eSO_FileStart);
+	file_t file = fileOpen(".schedule" + _name, File::ReadOnly);
+	fileSeek(file, 0, SeekOrigin::Start);
 	fileRead(file, _schedule, sizeof(SchedUnit)*6*7);
 	fileClose(file);
 }

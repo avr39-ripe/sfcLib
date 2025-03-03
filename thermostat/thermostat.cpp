@@ -185,7 +185,7 @@ void ThermostatClass::onHttpConfig(HttpRequest &request, HttpResponse &response)
 void ThermostatClass::_saveBinConfig()
 {
 	Serial.printf(_F("Try to save bin cfg..\n"));
-	file_t file = fileOpen("tstat" + _name, eFO_CreateIfNotExist | eFO_WriteOnly);
+	file_t file = fileOpen("tstat" + _name, File::Create | File::WriteOnly);
 	fileWrite(file, &_targetTemp, sizeof(_targetTemp));
 	fileWrite(file, &_targetTempDelta, sizeof(_targetTempDelta));
 	fileClose(file);
@@ -197,8 +197,8 @@ void ThermostatClass::_loadBinConfig()
 	if (fileExist("tstat" + _name))
 	{
 		Serial.printf(_F("Will load bin cfg..\n"));
-		file_t file = fileOpen("tstat" + _name, eFO_ReadOnly);
-		fileSeek(file, 0, eSO_FileStart);
+		file_t file = fileOpen("tstat" + _name, File::ReadOnly);
+		fileSeek(file, 0, SeekOrigin::Start);
 		fileRead(file, &_targetTemp, sizeof(_targetTemp));
 		fileRead(file, &_targetTempDelta, sizeof(_targetTempDelta));
 		fileClose(file);
