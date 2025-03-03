@@ -6,7 +6,6 @@ void ApplicationClass::init()
 {
 	Serial.begin(SERIAL_BAUD_RATE); // 115200 by default
 	Serial.systemDebugOutput(true);
-	Serial.commandProcessing(true);
 	HttpServerSettings webServerCfg;
 	webServerCfg.keepAliveSeconds = 2;
 	webServerCfg.minHeapSize = 7000;
