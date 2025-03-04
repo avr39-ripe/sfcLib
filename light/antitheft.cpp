@@ -53,7 +53,7 @@ void AntiTheftClass::_enableAntiTheft(uint8_t enableState)
 void AntiTheftClass::_saveBinConfig()
 {
 	Serial.printf("Try to save bin cfg..\n");
-	file_t file = fileOpen("antiTheft.cfg", eFO_CreateIfNotExist | eFO_WriteOnly);
+	file_t file = fileOpen("antiTheft.cfg", File::Create | File::WriteOnly);
 	fileWrite(file, &_enableStartTime, sizeof(_enableStartTime));
 	fileWrite(file, &_enableStopTime, sizeof(_enableStopTime));
 	fileWrite(file, &_minOn, sizeof(_minOn));
@@ -69,8 +69,8 @@ void AntiTheftClass::_loadBinConfig()
 	if (fileExist("antiTheft.cfg"))
 	{
 		Serial.printf("Will load bin cfg..\n");
-		file_t file = fileOpen("antiTheft.cfg", eFO_ReadOnly);
-		fileSeek(file, 0, eSO_FileStart);
+		file_t file = fileOpen("antiTheft.cfg", File::ReadOnly);
+		fileSeek(file, 0, SeekOrigin::Start);
 		fileRead(file, &_enableStartTime, sizeof(_enableStartTime));
 		fileRead(file, &_enableStopTime, sizeof(_enableStopTime));
 		fileRead(file, &_minOn, sizeof(_minOn));
