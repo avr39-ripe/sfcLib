@@ -3,7 +3,9 @@
 #include <Storage/SpiFlash.h>
 #include <esp_spi_flash.h>
 #include <Network/Http/Websocket/WebsocketResource.h>
-#include <Network/RbootHttpUpdater.h>
+#include <Ota/Upgrader.h>
+#include <Ota/Network/HttpUpgrader.h>
+#include <Storage/PartitionStream.h>
 #include <JsonObjectStream.h>
 #include <wsbinconst.h>
 
@@ -49,12 +51,13 @@ public:
 //	ApplicationConfig Config; // Instance of Configuration for application
 	HttpServer webServer; // instance of web server for application
 	void startWebServer(); // Start Application WebServer
-	RbootHttpUpdater* otaUpdater = 0;
+	std::unique_ptr<Ota::Network::HttpUpgrader> otaUpdater = nullptr;
+	OtaUpgrader ota;
 	static const uint8_t sysId = 1;
 	void wsAddBinSetter(uint8_t sysId, WebsocketBinaryDelegate wsBinSetterDelegate);
 	void wsAddBinGetter(uint8_t sysId, WebsocketBinaryDelegate wsBinGetterDelegate);
 	virtual void userSTAGotIP(IpAddress ip, IpAddress mask, IpAddress gateway) {}; // Runs when Station got ip from access-point
-	void OtaUpdate_CallBack(RbootHttpUpdater& client, bool result);
+	void OtaUpdate_CallBack(Ota::Network::HttpUpgrader& client, bool result);
 	void OtaUpdate();
 	void Switch();
 protected:
@@ -100,5 +103,5 @@ protected:
 	virtual void _saveAppConfig(file_t& file) {}; //override this in child class to save additional config values
 	virtual bool _extraConfigReadJson(JsonObject& json) { return false; }; // ovveride in child to read extra config params from posted json
 	virtual void _extraConfigWriteJson(JsonObject& json) {}; // ovveride in child to write extra config params to json response
-	Storage::Partition findSpiffsPartition(uint8_t slot); // Find SPIFFS partition by slot
+	Storage::Partition findSpiffsPartition(Storage::Partition appPart); // Find SPIFFS partition by slot
 };

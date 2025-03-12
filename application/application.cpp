@@ -3,18 +3,20 @@
 //ApplicationClass App;
 
 void ApplicationClass::init()
-{
+	{
 	Serial.begin(SERIAL_BAUD_RATE); // 115200 by default
 	Serial.systemDebugOutput(true);
 	HttpServerSettings webServerCfg;
 	webServerCfg.keepAliveSeconds = 2;
 	webServerCfg.minHeapSize = 7000;
 	webServer.configure(webServerCfg);
-	int slot = rboot_get_current_rom();
-	_spiffsPartition = findSpiffsPartition(slot);
-
+	
+	// mount spiffs
+	auto partition = ota.getRunningPartition();
+	_spiffsPartition = findSpiffsPartition(partition);
+	//_spiffsPartition = Storage::findPartition("spiffs0");
 	if(_spiffsPartition) {
-		debugf("trying to mount '%s' at 0x%08x, length %d", _spiffsPartition.name().c_str(), _spiffsPartition.address(),
+		debugf("trying to mount %s @ 0x%08x, length %d", _spiffsPartition.name().c_str(), _spiffsPartition.address(),
 			   _spiffsPartition.size());
 		spiffs_mount(_spiffsPartition);
 	}
@@ -74,7 +76,7 @@ void ApplicationClass::_initialWifiConfig()
 // Set DHCP hostname to WebAppXXXX where XXXX is last 4 digits of MAC address
 	String macDigits =  WifiStation.getMAC().substring(8,12);
 	macDigits.toUpperCase();
-	WifiStation.setHostname("WebApp" + macDigits);
+	//WifiStation.setHostname("WebApp" + macDigits);
 
 // One-time set own soft Access Point SSID and PASSWORD and save it into configuration area
 // This part of code will run ONCE after application flash into the ESP
@@ -152,7 +154,9 @@ void ApplicationClass::_STAConnect(const String& ssid, MacAddress bssid, uint8_t
 {
 	debugf("DELEGATE CONNECT - SSID: %s, CHANNEL: %d\n", ssid.c_str(), channel);
 
-	wifi_station_dhcpc_set_maxtry(128);
+#if (SMING_ARCH == ESP8266)
+//	wifi_station_dhcpc_set_maxtry(128);
+#endif
 //	_reconnectTimer.initializeMs(35000, TimerDelegateStdFunction(&ApplicationClass::_STAReconnect,this)).start();
 	_reconnectTimer.initializeMs(35000, [=](){this->_STAReconnect();}).start();
 	// Add commands to be executed after successfully connecting to AP
@@ -365,22 +369,20 @@ void ApplicationClass::saveConfig()
 	fileClose(file);
 }
 
-void ApplicationClass::OtaUpdate_CallBack(RbootHttpUpdater& client, bool result)
+void ApplicationClass::OtaUpdate_CallBack(Ota::Network::HttpUpgrader& client, bool result)
 {
 	Serial.println(_F("In callback..."));
 	if(result == true) {
 		// success
-		uint8 slot;
-		slot = rboot_get_current_rom();
-		if(slot == 0)
-			slot = 1;
-		else
-			slot = 0;
+		ota.end();
+
+		auto part = ota.getNextBootPartition();
 		// set to boot new rom and then reboot
-		Serial.printf(_F("Firmware updated, rebooting to rom %d...\r\n"), slot);
-		rboot_set_current_rom(slot);
+		Serial << _F("Firmware updated, rebooting to ") << part.name() << _F(" @ ...") << endl;
+		ota.setBootPartition(part);
 		System.restart();
 	} else {
+		ota.abort();
 		// fail
 		Serial.println(_F("Firmware update failed!"));
 	}
@@ -388,59 +390,58 @@ void ApplicationClass::OtaUpdate_CallBack(RbootHttpUpdater& client, bool result)
 
 void ApplicationClass::OtaUpdate()
 {
-
-	uint8 slot;
-	rboot_config bootconf;
-
-	Serial.println(_F("Updating..."));
+	Serial.println(F("Updating..."));
 
 	// need a clean object, otherwise if run before and failed will not run again
-	if(otaUpdater)
-		delete otaUpdater;
-	otaUpdater = new RbootHttpUpdater();
+	otaUpdater = std::make_unique<Ota::Network::HttpUpgrader>();
 
 	// select rom slot to flash
-	bootconf = rboot_get_config();
-	slot = bootconf.current_rom;
-	if(slot == 0)
-		slot = 1;
-	else
-		slot = 0;
+	auto part = ota.getNextBootPartition();
 
-#ifndef RBOOT_TWO_ROMS
+	/*
+	 * Applications should always include a sanity check to ensure partitions being updated are
+	 * not in use. This should always included the application partition but should also consider
+	 * filing system partitions, etc. which may be actively in use.
+	 */
+	if(part == ota.getRunningPartition()) {
+		Serial << F("May be running in temporary mode. Please reboot and try again.") << endl;
+		return;
+	}
+
 	// flash rom to position indicated in the rBoot config rom table
-	otaUpdater->addItem(bootconf.roms[slot], updateURL + "rom0.bin");
-#else
+	otaUpdater->addItem(updateURL + "rom0.bin", part);
 
-#endif
+	ota.begin(part);
 
-	auto part = findSpiffsPartition(slot);
-	if(part) {
+	auto spiffsPart = findSpiffsPartition(part);
+	if(spiffsPart) {
 		// use user supplied values (defaults for 4mb flash in hardware config)
-		otaUpdater->addItem(part.address(), updateURL + "spiff_rom.bin", part.size());
+		otaUpdater->addItem(updateURL + "spiff_rom.bin", spiffsPart,
+							new Storage::PartitionStream(spiffsPart, Storage::Mode::BlockErase));
 	}
 
 	// request switch and reboot on success
 	//otaUpdater->switchToRom(slot);
 	// and/or set a callback (called on failure or success without switching requested)
-	otaUpdater->setCallback([this](RbootHttpUpdater& client, bool result){this->OtaUpdate_CallBack(client,result);});
-	
+	otaUpdater->setCallback([this](Ota::Network::HttpUpgrader& client, bool result){this->OtaUpdate_CallBack(client,result);});
+
 	// start update
 	otaUpdater->start();
 }
 
 void ApplicationClass::Switch()
 {
-	uint8 before, after;
-	before = rboot_get_current_rom();
-	if(before == 0)
-		after = 1;
-	else
-		after = 0;
-	Serial.printf(_F("Swapping from rom %d to rom %d.\r\n"), before, after);
-	rboot_set_current_rom(after);
-	Serial.println(_F("Restarting...\r\n"));
-	System.restart();
+	auto before = ota.getRunningPartition();
+	auto after = ota.getNextBootPartition();
+
+	Serial << _F("Swapping from ") << before.name() << " @ 0x" << String(before.address(), HEX) << " to "
+		   << after.name() << " @ 0x" << String(after.address(), HEX) << endl;
+	if(ota.setBootPartition(after)) {
+		Serial.println(F("Restarting...\r\n"));
+		System.restart();
+	} else {
+		Serial.println(F("Switch failed."));
+	}
 }
 
 void ApplicationClass::_httpOnUpdate(HttpRequest &request, HttpResponse &response)
@@ -557,7 +558,7 @@ void ApplicationClass::wsBinGetter(WebsocketConnection& socket, uint8_t* data, s
 		os_memcpy((&buffer[wsBinConst::wsPayLoadStart]), &_counter, sizeof(_counter));
 		os_memcpy((&buffer[wsBinConst::wsPayLoadStart + 4]), &timestamp, sizeof(timestamp));
 		socket.sendBinary(buffer, wsBinConst::wsPayLoadStart + 4 + 4);
-		delete buffer;
+		delete[] buffer;
 		break;
 	}
 	}
@@ -573,10 +574,10 @@ void ApplicationClass::wsAddBinGetter(uint8_t sysId, WebsocketBinaryDelegate wsB
 	_wsBinGetters[sysId] = wsBinGetterDelegate;
 }
 
-Storage::Partition ApplicationClass::findSpiffsPartition(uint8_t slot)
+Storage::Partition ApplicationClass::findSpiffsPartition(Storage::Partition appPart)
 {
 	String name = F("spiffs");
-	name += slot;
+	name += ota.getSlot(appPart);
 	auto part = Storage::findPartition(name);
 	if(!part) {
 		debug_w("Partition '%s' not found", name.c_str());
