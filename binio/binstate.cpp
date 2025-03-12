@@ -168,7 +168,7 @@ void BinStateHttpClass::wsSendState(WebsocketConnection& socket)
 
 	socket.sendBinary(buffer, wsBinConst::wsPayLoadStart + 1 + 1);
 
-	delete buffer;
+	delete[] buffer;
 }
 
 void BinStateHttpClass::wsSendStateAll(uint8_t state)
@@ -184,7 +184,7 @@ void BinStateHttpClass::wsSendStateAll(uint8_t state)
 //	}
 	WebsocketConnection::broadcast((const char*)buffer, wsBinConst::wsPayLoadStart + 1 + 1, WS_FRAME_BINARY);
 
-	delete buffer;
+	delete[] buffer;
 }
 
 void BinStateHttpClass::setState(uint8_t state)

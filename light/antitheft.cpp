@@ -142,7 +142,7 @@ void AntiTheftClass::wsBinGetter(WebsocketConnection& socket, uint8_t* data, siz
 		break;
 	}
 	}
-	delete buffer;
+	delete[] buffer;
 }
 
 void AntiTheftClass::wsBinSetter(WebsocketConnection& socket, uint8_t* data, size_t size)
