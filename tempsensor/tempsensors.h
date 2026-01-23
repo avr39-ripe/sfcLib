@@ -79,9 +79,12 @@ public:
 private:
 	virtual void _temp_start();
 	int _temp_read(HttpConnection& connection, bool successful, uint8_t sensorId);
+	void _onHttpTimeout(uint8_t sensorId);
+	void _advanceSensor(uint8_t sensorId);
 	void _getHttpTemp(uint8_t sensorId);
 	HttpClient _httpClient;
 	std::vector<String> _addresses;
 	std::vector<Timer*> _httpTimers;
 	uint8_t _currentSensorId = 0;
+	bool _polling = false;
 };

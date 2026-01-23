@@ -359,19 +359,27 @@ void TempSensorsHttp::_getHttpTemp(uint8_t sensorId)
 			});
 	_httpTimers[sensorId]->initializeMs(5000, [this,sensorId]()
 			{
-				this->_data[sensorId]->_statusFlag = (TempSensorStatus::DISCONNECTED | TempSensorStatus::INVALID);
+				this->_onHttpTimeout(sensorId);
 			}).startOnce(); // Fire timer that will invalid statusFlag if no reply received
 }
 void TempSensorsHttp::_temp_start()
 {
-	for(int i=0; i<_data.count(); ++i)
+	if (_data.count() == 0)
 	{
-		_getHttpTemp(i);
+		return;
 	}
+	if (_polling)
+	{
+		return;
+	}
+	_polling = true;
+	_currentSensorId = 0;
+	_getHttpTemp(_currentSensorId);
 }
 
 int TempSensorsHttp::_temp_read(HttpConnection& connection, bool successful, uint8_t sensorId)
 {
+	bool ok = false;
 	if (successful)
 	{
 		String response = connection.getResponse()->getBody();
@@ -380,20 +388,53 @@ int TempSensorsHttp::_temp_read(HttpConnection& connection, bool successful, uin
 			StaticJsonBuffer<200> jsonBuffer;
 			JsonObject& root = jsonBuffer.parseObject(response);
 //			root.prettyPrintTo(Serial); //Uncomment it for debuging
-			if (root["temperature"].success())
+			if (root.success() && root["temperature"].success())
 			{
 				_data[sensorId]->_temperature = root["temperature"];
-				_data[sensorId]->_statusFlag = root["statusFlag"];
+				if (root["statusFlag"].success())
+				{
+					_data[sensorId]->_statusFlag = root["statusFlag"];
+				}
+				else
+				{
+					_data[sensorId]->_statusFlag = TempSensorStatus::HEALTHY;
+				}
+				ok = true;
 			}
 			Serial.printf(_F("ID: %d - "), sensorId); Serial.println(_data[sensorId]->_temperature);
-			_httpTimers[sensorId]->stop(); // Stop timer that must set _statusFlag to (TempSensorStatus::DISCONNECTED | TempSensorStatus::INVALID)
 		}
 	}
-	else
+	_httpTimers[sensorId]->stop(); // Stop timer that must set _statusFlag to (TempSensorStatus::DISCONNECTED | TempSensorStatus::INVALID)
+	if (!ok)
 	{
 		_data[sensorId]->_statusFlag = (TempSensorStatus::DISCONNECTED | TempSensorStatus::INVALID);
 		Serial.printf(_F("NET PROBLEM unsucces request\n"));
 	}
 
+	_advanceSensor(sensorId);
 	return 0;
+}
+
+void TempSensorsHttp::_onHttpTimeout(uint8_t sensorId)
+{
+	_data[sensorId]->_statusFlag = (TempSensorStatus::DISCONNECTED | TempSensorStatus::INVALID);
+	Serial.printf(_F("HTTP timeout for sensor %d\n"), sensorId);
+	_advanceSensor(sensorId);
+}
+
+void TempSensorsHttp::_advanceSensor(uint8_t sensorId)
+{
+	if (!_polling || sensorId != _currentSensorId)
+	{
+		return;
+	}
+	_currentSensorId++;
+	if (_currentSensorId < _data.count())
+	{
+		_getHttpTemp(_currentSensorId);
+	}
+	else
+	{
+		_polling = false;
+	}
 }
