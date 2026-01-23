@@ -76,8 +76,9 @@ void ApplicationClass::_initialWifiConfig()
 // Set DHCP hostname to WebAppXXXX where XXXX is last 4 digits of MAC address
 	String macDigits =  WifiStation.getMAC().substring(8,12);
 	macDigits.toUpperCase();
-	//WifiStation.setHostname("WebApp" + macDigits);
-
+#if (SMING_ARCH == ESP8266)
+	WifiStation.setHostname("WebApp" + macDigits);
+#endif
 // One-time set own soft Access Point SSID and PASSWORD and save it into configuration area
 // This part of code will run ONCE after application flash into the ESP
 	if(WifiAccessPoint.getSSID() != WIFIAP_SSID + macDigits)
@@ -155,7 +156,7 @@ void ApplicationClass::_STAConnect(const String& ssid, MacAddress bssid, uint8_t
 	debugf("DELEGATE CONNECT - SSID: %s, CHANNEL: %d\n", ssid.c_str(), channel);
 
 #if (SMING_ARCH == ESP8266)
-//	wifi_station_dhcpc_set_maxtry(128);
+	wifi_station_dhcpc_set_maxtry(128);
 #endif
 //	_reconnectTimer.initializeMs(35000, TimerDelegateStdFunction(&ApplicationClass::_STAReconnect,this)).start();
 	_reconnectTimer.initializeMs(35000, [=](){this->_STAReconnect();}).start();
