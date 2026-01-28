@@ -352,11 +352,18 @@ void TempSensorsHttp::addSensor(String url)
 
 void TempSensorsHttp::_getHttpTemp(uint8_t sensorId)
 {
-	_httpClient.downloadString(_addresses[sensorId], [this,sensorId](HttpConnection& connection, bool successful)->int
+	bool queued = _httpClient.downloadString(_addresses[sensorId], [this,sensorId](HttpConnection& connection, bool successful)->int
 			{
 				this->_temp_read(connection, successful, sensorId);
 				return 0;
 			});
+	if (!queued)
+	{
+		Serial.printf(_F("HTTP queue full for sensor %d\n"), sensorId);
+		_data[sensorId]->_statusFlag = (TempSensorStatus::DISCONNECTED | TempSensorStatus::INVALID);
+		_polling = false;
+		return;
+	}
 	_httpTimers[sensorId]->initializeMs(5000, [this,sensorId]()
 			{
 				this->_onHttpTimeout(sensorId);
